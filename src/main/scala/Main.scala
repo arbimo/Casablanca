@@ -2,21 +2,21 @@ package br.ufrj.ner;
 
 
 import com.hp.hpl.jena.query._
+import br.ufrj.ner.SearchBackend._
 
 
 object Main extends App {
-  println("Hello World")
+  val file = "/home/arthur/Info/ScalaJena/src/ressources/default.endpoint"
+  
+  val sbf = new SearchBackendFactory
+  val sb = sbf.createFromFile(file) match { case Some(backend) => backend
+                                   case None => exit(-1) }
+  
 
-  var query = DBPediaSQF.create("Casablanca")
-
-  // initializing queryExecution factory with remote service.
-  var qexec = QueryExecutionFactory.sparqlService(DBPedia.url, query);
-
-
-  val results = qexec.execSelect();
+  val results = sb.search("Will")
+  println(results)
   while(results.hasNext) {
     val res = results.next()
     println(res)
   }
-
 }
