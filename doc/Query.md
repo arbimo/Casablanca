@@ -20,7 +20,7 @@ Example config file :
 name := "My example end point"
 
 %%EndPoint
-url := http://localhost:3030/Yago/query
+url := <http://localhost:3030/Yago/query>
  
 %%Predicates
 <http://yago-knowledge.org/resource/hasPreferredName>  50
