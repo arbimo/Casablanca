@@ -12,8 +12,13 @@ UNION
 
  } LIMIT 100
 ```
- 
+
+Example config file :
+
 ```
+%%Config 
+name := "My example end point"
+
 %%EndPoint
 url := http://localhost:3030/Yago/query
  
@@ -25,10 +30,11 @@ url := http://localhost:3030/Yago/query
 ```
 
 Grammar :
-
+```
 Config ::= EndPoint Predicates
 EndPoint ::= "%%EndPoint" EndPointBody 
 EndPointBody ::= "url ":=" URL
 
 Predicates ::= "%%Predicate" PredicateBody
 PredicateBody ::= URI num PredicateBody
+```
