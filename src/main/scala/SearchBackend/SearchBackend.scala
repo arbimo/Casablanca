@@ -1,6 +1,7 @@
 package br.ufrj.ner.SearchBackend
 
 
+import com.codahale.logula.Logging
 import com.hp.hpl.jena.query._
 import scala.collection.mutable.ArrayBuffer
 
@@ -30,7 +31,7 @@ case class SearchResult(uri : String, score : Float)
   * 
   * It provides ways to create queries against this backend
   */
-class SearchBackend {
+class SearchBackend extends Logging {
 
   var name = ""
   
@@ -39,9 +40,13 @@ class SearchBackend {
   var predicates = new ArrayBuffer[Predicate](0)
   
   def search(searchTerm : String) : ResultSet = {
-    val query = SearchQueryFactory.create(searchTerm, this)
-    val results = QueryExecutionFactory.sparqlService(url, query).execSelect()
+    log.info("Searching for \"%s\" on <%s>", searchTerm, url)
     
+    val query = SearchQueryFactory.create(searchTerm, this)
+    
+    log.info("Remote query execution start")
+    val results = QueryExecutionFactory.sparqlService(url, query).execSelect()
+    log.info("Remote query execution end")
     
     
     return results

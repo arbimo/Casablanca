@@ -1,6 +1,6 @@
 package br.ufrj.ner.SearchBackend 
 
-
+import com.codahale.logula.Logging
 import scala.util.parsing.combinator.JavaTokenParsers
 
 
@@ -8,7 +8,7 @@ import scala.util.parsing.combinator.JavaTokenParsers
   * It provides an two methods to create a SearchBackend from
   * a configuration file.
   */
-class SearchBackendFactory extends JavaTokenParsers {
+class SearchBackendFactory extends JavaTokenParsers with Logging {
 
   private var backend = new SearchBackend
   
@@ -43,6 +43,7 @@ class SearchBackendFactory extends JavaTokenParsers {
     * @return Some[SearchBackend] on success ; None otherwise
     */
   def createFromFile(file : String) : Option[SearchBackend] = {
+    log.info("Reading configuration from file : \"%s\"", file)
     val source = io.Source.fromFile(file)
     val ret = parse(source.mkString)
     source.close
@@ -58,8 +59,9 @@ class SearchBackendFactory extends JavaTokenParsers {
     backend = new SearchBackend
     parseAll(backendConfig, str) match {
       case Success(res, _) => return Some(backend)
-      case NoSuccess(msg, _) => { println("Error while parsing the configuration.\n" + msg)
-                  return None }
+      case NoSuccess(msg, _) => { 
+        log.error("Error while parsing the configuration : %s", msg)
+        return None }
     }
   }
 
