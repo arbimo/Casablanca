@@ -1,3 +1,5 @@
+package br.ufrj.ner;
+
 import com.hp.hpl.jena.query._
 
 class SearchQueryFactory {

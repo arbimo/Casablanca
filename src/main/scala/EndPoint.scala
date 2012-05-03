@@ -1,3 +1,4 @@
+package br.ufrj.ner;
 
 
 case class EndPoint(name : String, url : String)
