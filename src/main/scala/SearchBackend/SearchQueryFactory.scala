@@ -4,31 +4,38 @@ import com.hp.hpl.jena.query._
 
 object SearchQueryFactory {
 
-    var prefix = 
+    val prefix = 
         "PREFIX owl: <http://www.w3.org/2002/07/owl#> "  + 
         "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> " +
         "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> " +
         "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> "
         
-    var structBegin = "SELECT ?entity WHERE { "
-    
-    var body = ""
-    
-    var structEnd = " } "
-    
-    var limit = " LIMIT 20 "
+    val limit = " LIMIT 200 "
     
     
-
+    /**  This function creates a Jena ARQ Query form :
+     *
+     * @param searchTerm string to look for
+     * @param backend a SearchBackend. This describes the dataset to use
+     * @return a Jena ARQ Query
+     */
     def create(searchTerm : String, backend : SearchBackend) : Query = {
       
-      structBegin = "SELECT " + backend.predicates(1).key + " WHERE { "
+      var structBegin = "SELECT " 
+      backend.predicates.foreach(p => structBegin += p.key)
+      structBegin += " WHERE { "
       
-      body = backend.predicates(1).key + " " + backend.predicates(1).uri + " \"" + searchTerm + "\" . "
+      var body = ""
+      for(i <- 0 to backend.predicates.length - 1) {
+        val p = backend.predicates(i)
+        body += "{ " + p.key + " " + p.uri + " \"" + searchTerm + "\" . } " 
+        if(i != backend.predicates.length -1)
+          body += " UNION "
+      }
+      
+      var structEnd = " } "
       
       var query = prefix + structBegin + body + structEnd + limit
-      
-      
       
       return QueryFactory.create(query)
     }
