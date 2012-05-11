@@ -2,18 +2,23 @@ package br.ufrj.ner.SearchBackend
 
 import com.hp.hpl.jena.query._
 
+/** This object provides a way to create a Jena ARQ
+ * query from search term and a search backend.
+ *
+ * It is an abstraction of jena.QueryFactory
+ */
 object SearchQueryFactory {
 
-    val prefix = 
+    private val prefix = 
         "PREFIX owl: <http://www.w3.org/2002/07/owl#> "  + 
         "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> " +
         "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> " +
         "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> "
         
-    val limit = " LIMIT 200 "
+    private val limit = " LIMIT 200 "
     
     
-    /**  This function creates a Jena ARQ Query form :
+    /**  This function creates a Jena ARQ Query from :
      *
      * @param searchTerm string to look for
      * @param backend a SearchBackend. This describes the dataset to use
