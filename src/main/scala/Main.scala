@@ -28,18 +28,35 @@ object Main extends App with Logging {
     log.syslog.enabled = false
   }
   
-  log.info("Running UFRJ-NER")
+  override def main(args : Array[String]) = {
+    log.info("Running UFRJ-NER")
+    
+    var configFile = ""
+    var searchTerm = ""
+    
+    if(args.length == 1) {
+      configFile = "/home/arthur/Info/ScalaJena/src/ressources/default.endpoint"
+      searchTerm = args(0)
+    } else if(args.length == 2) {
+      configFile = args(0)
+      searchTerm = args(1)
+    } else {
+      println("run [ config-file ] search-term")
+      log.error("Arguments are not valid (%s)", args.mkString)
+      exit(1)
+    }
 
-  val file = "/home/arthur/Info/ScalaJena/src/ressources/default.endpoint"
+    val sbf = new SearchBackendFactory
+    val sb = sbf.createFromFile(configFile) match { 
+      case Some(backend) => backend
+      case None => exit(-1) 
+    }
   
-  val sbf = new SearchBackendFactory
-  val sb = sbf.createFromFile(file) match { case Some(backend) => backend
-                                   case None => exit(-1) }
-  
-  val results = sb.search("Will")
-  println(results)
-  while(results.hasNext) {
-    val res = results.next()
-    println(res)
+    val results = sb.search(searchTerm)
+    println(results)
+    while(results.hasNext) {
+      val res = results.next()
+      println(res)
+    }
   }
 }
