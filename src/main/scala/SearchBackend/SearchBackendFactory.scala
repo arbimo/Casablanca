@@ -32,7 +32,10 @@ class SearchBackendFactory extends JavaTokenParsers with Logging {
   private def predicates = "%%Predicates" ~ predicateLine.*
   
   private def predicateLine = uri ~ decimalNumber ^^
-        { case uri ~ weight => backend.predicates.append(new Predicate(uri, weight.toInt)) }
+        { case uri ~ weight => {
+          val p = new Predicate(uri, weight.toInt)
+          backend.predicates += Tuple2(p.key, p) }
+        }
   
   
   /**** Public interface ****/

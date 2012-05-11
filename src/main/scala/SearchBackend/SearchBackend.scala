@@ -3,10 +3,10 @@ package br.ufrj.ner.SearchBackend
 
 import com.codahale.logula.Logging
 import com.hp.hpl.jena.query._
-import scala.collection.mutable.ArrayBuffer
+import collection.mutable.{HashMap, ArrayBuffer}
 
 
-/** This class stores the uri of a predicate 
+/** This class stores the uri of a predicate
   * and the its associated weight (i.e. how important
   * is this predicate to know which candidate matches the best)
   */
@@ -14,16 +14,21 @@ case class Predicate(uri : String, weight : Int) {
   private final val chars = ('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9')
 
   val key = { 
-    uri.foldLeft("?")( (key, currentChar) => if(chars.contains(currentChar)) key + currentChar 
+    uri.foldLeft("")( (key, currentChar) => if(chars.contains(currentChar)) key + currentChar
                                           else key ) 
   }
 }
+
+object NullPredicate extends Predicate("", 0)
 
 /** This class contains a single result from a search.
   * 
   * The result is described with its URI and its score
   */
-case class SearchResult(uri : String, score : Float)
+case class SearchResult(uri : String, score : Float) extends Ordered[SearchResult] {
+  override def compare(other : SearchResult) = - this.score.compare(other.score)
+  override def toString() = score + " - " + uri
+}
 
 
 /** This class aims at storing information about a search backend
@@ -37,9 +42,9 @@ class SearchBackend extends Logging {
   
   var url = ""
   
-  var predicates = new ArrayBuffer[Predicate](0)
+  var predicates = new scala.collection.mutable.HashMap[String, Predicate]()
   
-  def search(searchTerm : String) : ResultSet = {
+  def search(searchTerm : String) : Seq[SearchResult] = {
     log.info("Searching for \"%s\" on <%s>", searchTerm, url)
     
     val query = SearchQueryFactory.create(searchTerm, this)
@@ -47,14 +52,38 @@ class SearchBackend extends Logging {
     log.info("Remote query execution start")
     val results = QueryExecutionFactory.sparqlService(url, query).execSelect()
     log.info("Remote query execution end")
-    
-    
-    return results
+
+    return treatResults(results)
   }
-  
-  private def sortResults(results : ResultSet) : ArrayBuffer[SearchResult] = {
-  
-    return new ArrayBuffer[SearchResult](0)
+
+  /** Takes a ResultSet and creates an array sorted according of the weight
+   * of each predicates applied to an entity
+   */
+  private def treatResults(results : ResultSet) : Seq[SearchResult] = {
+    val scoredResults =  new HashMap[String, Int]()
+
+    while(results.hasNext()) {
+      val sol = results.next()
+      val it = sol.varNames()
+      while(it.hasNext()) {
+        val key = it.next()
+        if(predicates.contains(key)) {
+          val uri = sol.getResource(key).toString
+          val pred = predicates.getOrElse(key, NullPredicate)
+          val oldScore = treated.getOrElse(uri, 0)
+          scoredResults.update(uri, oldScore + pred.weight)
+        }
+      }
+    }
+
+    var resultArray = new ArrayBuffer[SearchResult](treated.size)
+    val it = scoredResults.keysIterator
+    while(it.hasNext) {
+      val key = it.next
+      resultArray += new SearchResult(key, scoredResults.getOrElse(key, 0).toFloat)
+    }
+
+    return util.Sorting.stableSort(resultArray)
   }
   
   override def toString : String = { 
@@ -62,8 +91,11 @@ class SearchBackend extends Logging {
     ret += "Url : " + url + "\n"
     
     ret +=  "\nPredicates list with their weight : \n"
-    for(p <- predicates) 
+    val it = predicates.valuesIterator
+    while(it.hasNext) {
+      val p = it.next
       ret += p.uri + " - " + p.weight + "\n"
+    }
     
     return ret
   }

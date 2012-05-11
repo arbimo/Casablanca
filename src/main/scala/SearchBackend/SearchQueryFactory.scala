@@ -14,8 +14,11 @@ object SearchQueryFactory {
         "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> " +
         "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> " +
         "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> "
-        
-    private val limit = " LIMIT 200 "
+
+   /** Limit the size of the results.
+    *  This should be avoided not to miss pretinent results
+    */
+    private val limit = " "
     
     
     /**  This function creates a Jena ARQ Query from :
@@ -25,16 +28,20 @@ object SearchQueryFactory {
      * @return a Jena ARQ Query
      */
     def create(searchTerm : String, backend : SearchBackend) : Query = {
-      
-      var structBegin = "SELECT " 
-      backend.predicates.foreach(p => structBegin += p.key)
+
+      var structBegin = "SELECT "
+      var it = backend.predicates.valuesIterator
+      while(it.hasNext)
+        structBegin += "?" + it.next.key + " "
+
       structBegin += " WHERE { "
       
       var body = ""
-      for(i <- 0 to backend.predicates.length - 1) {
-        val p = backend.predicates(i)
-        body += "{ " + p.key + " " + p.uri + " \"" + searchTerm + "\" . } " 
-        if(i != backend.predicates.length -1)
+      it = backend.predicates.valuesIterator
+      while(it.hasNext) {
+        val p = it.next
+        body += "{ " + "?" + p.key + " " + p.uri + " \"" + searchTerm + "\" . } "
+        if(it.hasNext)
           body += " UNION "
       }
       

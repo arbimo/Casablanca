@@ -47,20 +47,17 @@ object Main extends App with Logging {
       println("Unvalid arguments, use the following schema :")
       println("run [ config-file ] search-term")
       log.error("Arguments are not valid (%s)", args.mkString(" "))
-      exit(1)
+      System.exit(1)
     }
 
     val sbf = new SearchBackendFactory
-    val sb = sbf.createFromFile(configFile) match { 
+    val sb = sbf.createFromFile(configFile) match {
+      //TODO: remove Option type
       case Some(backend) => backend
-      case None => exit(-1) 
+      case None => new SearchBackend()
     }
   
     val results = sb.search(searchTerm)
-    println(results)
-    while(results.hasNext) {
-      val res = results.next()
-      println(res)
-    }
+    results.foreach(result => println(result))
   }
 }
