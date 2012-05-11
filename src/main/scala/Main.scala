@@ -10,25 +10,28 @@ import org.apache.log4j.Level
 
 object Main extends App with Logging {
   
-  Logging.configure { log =>
-    log.registerWithJMX = true
+  def initLogging() = {
+    Logging.configure { log =>
+      log.registerWithJMX = true
 
-    log.level = Level.INFO
-    log.loggers("ufrj.ner") = Level.OFF
+      log.level = Level.INFO
+      log.loggers("ufrj.ner") = Level.OFF
 
-    log.console.enabled = true
-    log.console.threshold = Level.WARN
+      log.console.enabled = true
+      log.console.threshold = Level.WARN
 
-    log.file.enabled = true
-    log.file.filename = "/tmp/ufrj-ner.log"
-    log.file.maxSize = 10 * 1024 // KB
-    log.file.retainedFiles = 5 // keep five old logs around
+      log.file.enabled = true
+      log.file.filename = "/tmp/ufrj-ner.log"
+      log.file.maxSize = 10 * 1024 // KB
+      log.file.retainedFiles = 5 // keep five old logs around
 
-    // syslog integration is always via a network socket
-    log.syslog.enabled = false
+      // syslog integration is always via a network socket
+      log.syslog.enabled = false
+    }
   }
   
   override def main(args : Array[String]) = {
+    initLogging
     log.info("Running UFRJ-NER")
     
     var configFile = ""
@@ -41,8 +44,9 @@ object Main extends App with Logging {
       configFile = args(0)
       searchTerm = args(1)
     } else {
+      println("Unvalid arguments, use the following schema :")
       println("run [ config-file ] search-term")
-      log.error("Arguments are not valid (%s)", args.mkString)
+      log.error("Arguments are not valid (%s)", args.mkString(" "))
       exit(1)
     }
 
