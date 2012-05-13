@@ -67,20 +67,21 @@ class SearchBackend extends Logging {
       val it = sol.varNames()
       while(it.hasNext()) {
         val key = it.next()
+
         if(predicates.contains(key)) {
           val uri = sol.getResource(key).toString
-          val pred = predicates.getOrElse(key, NullPredicate)
-          val oldScore = treated.getOrElse(uri, 0)
+          val pred = predicates(key)
+          val oldScore = scoredResults.getOrElse(uri, 0)
           scoredResults.update(uri, oldScore + pred.weight)
         }
       }
     }
 
-    var resultArray = new ArrayBuffer[SearchResult](treated.size)
+    var resultArray = new ArrayBuffer[SearchResult](scoredResults.size)
     val it = scoredResults.keysIterator
     while(it.hasNext) {
       val key = it.next
-      resultArray += new SearchResult(key, scoredResults.getOrElse(key, 0).toFloat)
+      resultArray += new SearchResult(key, scoredResults(key).toFloat)
     }
 
     return util.Sorting.stableSort(resultArray)
