@@ -1,5 +1,7 @@
 package br.ufrj.ner.SearchBackend
 
+/* Allow using for on java iterators */
+import scala.collection.JavaConversions._
 
 import com.codahale.logula.Logging
 import com.hp.hpl.jena.query._
@@ -62,27 +64,20 @@ class SearchBackend extends Logging {
   private def treatResults(results : ResultSet) : Seq[SearchResult] = {
     val scoredResults =  new HashMap[String, Int]()
 
-    while(results.hasNext()) {
-      val sol = results.next()
-      val it = sol.varNames()
-      while(it.hasNext()) {
-        val key = it.next()
+    for(sol <- results ; varName <- sol.varNames()) {
 
-        if(predicates.contains(key)) {
-          val uri = sol.getResource(key).toString
-          val pred = predicates(key)
-          val oldScore = scoredResults.getOrElse(uri, 0)
-          scoredResults.update(uri, oldScore + pred.weight)
-        }
+      /* if varName match to one of our predicates */
+      if(predicates.contains(varName)) {
+        val uri = sol.getResource(varName).toString
+        val pred = predicates(varName)
+        val oldScore = scoredResults.getOrElse(uri, 0)
+        scoredResults.update(uri, oldScore + pred.weight)
       }
     }
 
     var resultArray = new ArrayBuffer[SearchResult](scoredResults.size)
-    val it = scoredResults.keysIterator
-    while(it.hasNext) {
-      val key = it.next
+    for(key <- scoredResults.keysIterator)
       resultArray += new SearchResult(key, scoredResults(key).toFloat)
-    }
 
     return util.Sorting.stableSort(resultArray)
   }

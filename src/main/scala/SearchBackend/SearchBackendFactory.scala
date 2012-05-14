@@ -34,7 +34,7 @@ class SearchBackendFactory extends JavaTokenParsers with Logging {
   private def predicateLine = uri ~ decimalNumber ^^
         { case uri ~ weight => {
           val p = new Predicate(uri, weight.toInt)
-          backend.predicates += Tuple2(p.key, p) }
+          backend.predicates += (p.key -> p) }
         }
   
   
@@ -45,7 +45,7 @@ class SearchBackendFactory extends JavaTokenParsers with Logging {
     * @param file Path to a config file
     * @return Some[SearchBackend] on success ; None otherwise
     */
-  def createFromFile(file : String) : Option[SearchBackend] = {
+  def createFromFile(file : String) : SearchBackend = {
     log.info("Reading configuration from file : \"%s\"", file)
     val source = io.Source.fromFile(file)
     val ret = parse(source.mkString)
@@ -58,13 +58,14 @@ class SearchBackendFactory extends JavaTokenParsers with Logging {
     * @param str a ''String'' containing the configuration 
     * @return Some[SearchBackend] on success ; None otherwise
     */
-  def parse(str :String) : Option[SearchBackend] = {
+  def parse(str :String) : SearchBackend = {
     backend = new SearchBackend
     parseAll(backendConfig, str) match {
-      case Success(res, _) => return Some(backend)
-      case NoSuccess(msg, _) => { 
+      case Success(res, _) =>
+        backend
+      case NoSuccess(msg, _) =>
         log.error("Error while parsing the configuration : %s", msg)
-        return None }
+        throw new Exception("Unable to parse configuration")
     }
   }
 
