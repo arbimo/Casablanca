@@ -2,7 +2,7 @@ package br.ufrj.ner;
 
 
 import com.hp.hpl.jena.query._
-import br.ufrj.ner.SearchBackend._
+import br.ufrj.ner.searchbackend._
 
 import com.codahale.logula.Logging
 import org.apache.log4j.Level
@@ -43,13 +43,11 @@ object Main extends App with Logging {
     
       val configFile =
         if(args.length == 1)
-          "/home/arthur/Info/ScalaJena/src/ressources/default.endpoint"
+          "/home/arthur/Info/ScalaJena/src/ressources/local-yago.xml"
         else
           args(args.length-1)
 
-
-      val sbf = new SearchBackendFactory
-      val sb = sbf.createFromFile(configFile)
+      val sb = SearchBackend(scala.xml.XML.loadFile(configFile))
 
       val results = sb.search(searchTerm)
       results.reverse.foreach(result => println(result))

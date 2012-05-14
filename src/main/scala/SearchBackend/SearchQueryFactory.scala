@@ -1,4 +1,4 @@
-package br.ufrj.ner.SearchBackend
+package br.ufrj.ner.searchbackend
 
 import com.hp.hpl.jena.query._
 

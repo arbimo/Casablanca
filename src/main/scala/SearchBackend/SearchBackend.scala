@@ -1,27 +1,24 @@
-package br.ufrj.ner.SearchBackend
+package br.ufrj.ner.searchbackend
 
 /* Allow using for on java iterators */
 import scala.collection.JavaConversions._
 
 import com.codahale.logula.Logging
 import com.hp.hpl.jena.query._
-import collection.mutable.{HashMap, ArrayBuffer}
+import collection.mutable.ArrayBuffer
+import collection.immutable.HashMap
 
 
 /** This class stores the uri of a predicate
   * and the its associated weight (i.e. how important
   * is this predicate to know which candidate matches the best)
   */
-case class Predicate(uri : String, weight : Int) {
+case class Predicate(uri : String, weight : Float) {
   private final val chars = ('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9')
 
-  val key = { 
-    uri.foldLeft("")( (key, currentChar) => if(chars.contains(currentChar)) key + currentChar
-                                          else key ) 
-  }
+  val key =
+    uri.foldLeft("")( (key, currentChar) => if(chars.contains(currentChar)) key + currentChar else key )
 }
-
-object NullPredicate extends Predicate("", 0)
 
 /** This class contains a single result from a search.
   * 
@@ -38,14 +35,11 @@ case class SearchResult(uri : String, score : Float) extends Ordered[SearchResul
   * 
   * It provides ways to create queries against this backend
   */
-class SearchBackend extends Logging {
+class SearchBackend(val name : String,
+                    val url : String,
+                    val predicates : HashMap[String, Predicate]
+                     ) extends Logging {
 
-  var name = ""
-  
-  var url = ""
-  
-  var predicates = new scala.collection.mutable.HashMap[String, Predicate]()
-  
   def search(searchTerm : String) : Seq[SearchResult] = {
     log.info("Searching for \"%s\" on <%s>", searchTerm, url)
     
@@ -62,7 +56,7 @@ class SearchBackend extends Logging {
    * of each predicates applied to an entity
    */
   private def treatResults(results : ResultSet) : Seq[SearchResult] = {
-    val scoredResults =  new HashMap[String, Int]()
+    val scoredResults =  new collection.mutable.HashMap[String, Float]()
 
     for(sol <- results ; varName <- sol.varNames()) {
 
@@ -70,7 +64,7 @@ class SearchBackend extends Logging {
       if(predicates.contains(varName)) {
         val uri = sol.getResource(varName).toString
         val pred = predicates(varName)
-        val oldScore = scoredResults.getOrElse(uri, 0)
+        val oldScore :Float = scoredResults.getOrElse(uri, 0f)
         scoredResults.update(uri, oldScore + pred.weight)
       }
     }
@@ -96,4 +90,36 @@ class SearchBackend extends Logging {
     return ret
   }
 
+}
+
+/**Companion object for SearchBackend defining a constructor to
+ * parse an XML config file.
+ *
+ * Usage : `val sb = SearchBackend(scala.xml.XML.loadFile(configFile))`
+ */
+object SearchBackend extends Logging {
+
+  /**Constructor for SearchBackend
+   *
+   * @param config an xml node containing the configuration
+   * @return a SearchBackend built from the configuration
+   */
+  def apply(config : scala.xml.Node) : SearchBackend = {
+    val name = (config\"@name").text
+    val queryUrl = (config\"@url").text
+
+    var predicates = new collection.immutable.HashMap[String, Predicate]()
+    for (predNode <- config \ "search-predicate") {
+      val uri = {
+        val uriText = (predNode\"@uri").text
+        if (uriText.startsWith("http://")) "<" + uriText + ">"
+        else uriText
+      }
+      val pred = Predicate(uri, (predNode\"@weight").text.toFloat)
+      println(predNode + "\n" + pred )
+      predicates += (pred.key -> pred)
+    }
+
+    return new SearchBackend(name, queryUrl, predicates)
+  }
 }
