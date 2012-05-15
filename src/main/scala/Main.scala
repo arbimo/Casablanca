@@ -43,9 +43,9 @@ object Main extends App with Logging {
     
       val configFile =
         if(args.length == 1)
-          "/home/arthur/Info/ScalaJena/src/ressources/local-yago.xml"
+          "/home/arthur/Info/ScalaJena/src/resources/local-yago.xml"
         else
-          args(args.length-1)
+          args(args.length-2)
 
       val sb = SearchBackend(scala.xml.XML.loadFile(configFile))
 
