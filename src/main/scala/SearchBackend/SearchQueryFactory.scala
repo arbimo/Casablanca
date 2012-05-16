@@ -38,9 +38,15 @@ object SearchQueryFactory {
       
       var body = ""
       it = backend.predicates.valuesIterator
+      
       while(it.hasNext) {
         val p = it.next
-        body += "{ " + "?" + p.key + " " + p.uri + " \"" + searchTerm + "\" . } "
+        if(backend.matchInfo.method == "contains") {
+          body += "{ " + "?" + p.key + " " + p.uri + " ?containsText ."
+          body += "?containsText " + backend.matchInfo.uri + " \"" + searchTerm + "\" . } "
+        } else {
+          body += "{ " + "?" + p.key + " " + p.uri + " \"" + searchTerm + "\" . } "
+        }
         if(it.hasNext)
           body += " UNION "
       }

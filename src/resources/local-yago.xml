@@ -1,6 +1,15 @@
-<search-backend name="Local Fuseki End Point for Yago2" url="http://localhost:3030/Yago/query">
-  <search-predicate uri="http://yago-knowledge.org/resource/hasPreferredName" weight="50"/>
-  <search-predicate uri="http://www.w3.org/2000/01/rdf-schema#label" weight="25"/>
-  <search-predicate uri="http://yago-knowledge.org/resource/hasFamilyName" weight="25"/>
-  <search-predicate uri="http://yago-knowledge.org/resource/hasGivenName" weight="5"/>
+<search-backend>
+  <name>Local Fuseki End Point for Yago2</name>
+  <end-point>
+    <url>http://localhost:3030/Yago/query"</url>
+  </end-point>
+  <search>
+    <match>
+      <type>exact</type>
+    </match>
+    <search-predicate uri="http://yago-knowledge.org/resource/hasPreferredName" weight="50"/>
+    <search-predicate uri="http://www.w3.org/2000/01/rdf-schema#label" weight="25"/>
+    <search-predicate uri="http://yago-knowledge.org/resource/hasFamilyName" weight="25"/>
+    <search-predicate uri="http://yago-knowledge.org/resource/hasGivenName" weight="5"/>
+  </search>
 </search-backend>

@@ -1,0 +1,13 @@
+<search-backend>
+  <name>DBPedia</name>
+  <end-point>
+    <url>http://dbpedia.org/sparql</url>
+  </end-point>
+  <search>
+    <match>
+      <type>contains</type>
+      <contains-uri>bif:contains</contains-uri>
+    </match>
+    <search-predicate uri="http://www.w3.org/2000/01/rdf-schema#label" weight="25"/>
+  </search>
+</search-backend>

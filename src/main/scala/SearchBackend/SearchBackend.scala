@@ -29,6 +29,17 @@ case class SearchResult(uri : String, score : Float) extends Ordered[SearchResul
   override def toString() = score + " - " + uri
 }
 
+/** This class simply includes a description of the search method
+ * to use in the backend.
+ * 
+ * method can be :
+ *
+ *  - exact : `?result <search-uri> "search-text"`
+ *
+ *  - contains : `?result <search-uri> ?text . ?text <match.uri> "search-text"`
+ */
+case class Match(val method : String, val uri : String)
+
 
 /** This class aims at storing information about a search backend
   * (ex : a DBPeida SPARQL end point)
@@ -37,7 +48,8 @@ case class SearchResult(uri : String, score : Float) extends Ordered[SearchResul
   */
 class SearchBackend(val name : String,
                     val url : String,
-                    val predicates : HashMap[String, Predicate]
+                    val predicates : HashMap[String, Predicate],
+                    val matchInfo : Match
                      ) extends Logging {
 
   def search(searchTerm : String) : Seq[SearchResult] = {
@@ -105,21 +117,27 @@ object SearchBackend extends Logging {
    * @return a SearchBackend built from the configuration
    */
   def apply(config : scala.xml.Node) : SearchBackend = {
-    val name = (config\"@name").text
-    val queryUrl = (config\"@url").text
+    val name = (config\"name").text
+    val queryUrl = (config\"end-point"\"url").text
 
     var predicates = new collection.immutable.HashMap[String, Predicate]()
-    for (predNode <- config \ "search-predicate") {
+    for (predNode <- config\"search"\"search-predicate") {
       val uri = {
         val uriText = (predNode\"@uri").text
         if (uriText.startsWith("http://")) "<" + uriText + ">"
         else uriText
       }
       val pred = Predicate(uri, (predNode\"@weight").text.toFloat)
-      println(predNode + "\n" + pred )
       predicates += (pred.key -> pred)
     }
 
-    return new SearchBackend(name, queryUrl, predicates)
+    val matchMethod = (config\"search"\"match"\"type").text
+    val containsUri = 
+      if(matchMethod == "contains")
+        "<"+ (config\"search"\"match"\"contains-uri").text +">"
+      else
+        ""
+
+    return new SearchBackend(name, queryUrl, predicates, new Match(matchMethod, containsUri))
   }
 }
