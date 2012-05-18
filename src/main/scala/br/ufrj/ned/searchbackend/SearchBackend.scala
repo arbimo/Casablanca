@@ -1,4 +1,4 @@
-package br.ufrj.ner.searchbackend
+package br.ufrj.ned.searchbackend
 
 /* Allow using for on java iterators */
 import scala.collection.JavaConversions._

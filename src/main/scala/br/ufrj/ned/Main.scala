@@ -1,8 +1,8 @@
-package br.ufrj.ner;
+package br.ufrj.ned;
 
 
 import com.hp.hpl.jena.query._
-import br.ufrj.ner.searchbackend._
+import br.ufrj.ned.searchbackend._
 
 import com.codahale.logula.Logging
 import org.apache.log4j.Level
