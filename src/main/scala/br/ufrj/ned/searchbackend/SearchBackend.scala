@@ -40,12 +40,13 @@ class SearchBackend(val name : String,
 		popularity match {
 			case Some(popMethod) =>
 				val popMeasurer = new PopularityMeasurer(queryUrl, popMethod)
-				for(result <- weightedResults) yield {
-					new SearchResult(result, popMeasurer.getPopularity(result.uri))
-				}
+				val entities = weightedResults map {_.uri}
+				val popularities = popMeasurer.getPopularities(entities)
+
+				for(i <- 0 to weightedResults.length-1) yield
+					new SearchResult(weightedResults(i), popularities(i))
 			case None =>
 				weightedResults
-				
 		}
 	}
 
@@ -147,9 +148,17 @@ object SearchBackend extends Logging {
 	 * @return <uriText> if the URI doesn't use a prefix, uriText otherwise
 	 */
 	def normalizeUri(uriText : String) : String = {
+		def clean(uri:String) = 
+			if(uri.contains("\"")) {
+				log.error("This URI contains double quotes : "+uri)
+				uri.replaceAll("\"", "")
+			} else
+				uri
+		
+
 		if(uriText.startsWith("http://") || uriText.startsWith("bif:"))
-			"<"+uriText+">"
+			"<"+clean(uriText)+">"
 		else
-			uriText
+			clean(uriText)
 	}
 }
