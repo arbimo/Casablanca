@@ -1,7 +1,7 @@
 <search-backend>
   <name>Local Fuseki End Point for Yago2</name>
   <end-point>
-    <url>http://localhost:3030/Yago/query"</url>
+    <url>http://localhost:3030/Yago/query</url>
   </end-point>
   <search>
     <match>
@@ -12,4 +12,10 @@
     <search-predicate uri="http://yago-knowledge.org/resource/hasFamilyName" weight="25"/>
     <search-predicate uri="http://yago-knowledge.org/resource/hasGivenName" weight="5"/>
   </search>
+  <popularity>
+	  <measure>
+		  <predicate>http://yago-knowledge.org/resource/hasNumberOfWikipediaLinks</predicate>
+		  <max>1000</max>
+	  </measure>
+  </popularity>
 </search-backend>

@@ -9,60 +9,45 @@ import collection.mutable.ArrayBuffer
 import collection.immutable.HashMap
 
 
-/** This class stores the uri of a predicate
-  * and the its associated weight (i.e. how important
-  * is this predicate to know which candidate matches the best)
-  */
-case class Predicate(uri : String, weight : Float) {
-  private final val chars = ('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9')
-
-  val key =
-    uri.foldLeft("")( (key, currentChar) => if(chars.contains(currentChar)) key + currentChar else key )
-}
-
-/** This class contains a single result from a search.
-  * 
-  * The result is described with its URI and its score
-  */
-case class SearchResult(uri : String, score : Float) extends Ordered[SearchResult] {
-  override def compare(other : SearchResult) = - this.score.compare(other.score)
-  override def toString() = score + " - " + uri
-}
-
-/** This class simply includes a description of the search method
- * to use in the backend.
- * 
- * method can be :
- *
- *  - exact : `?result <search-uri> "search-text"`
- *
- *  - contains : `?result <search-uri> ?text . ?text <match.uri> "search-text"`
- */
-case class Match(val method : String, val uri : String)
-
-
 /** This class aims at storing information about a search backend
   * (ex : a DBPeida SPARQL end point)
   * 
   * It provides ways to create queries against this backend
   */
 class SearchBackend(val name : String,
-                    val url : String,
+                    val queryUrl : String,
                     val predicates : HashMap[String, Predicate],
-                    val matchInfo : Match
+                    val matchInfo : Match,
+										val popularity : Option[PopularityMethod]
                      ) extends Logging {
 
   def search(searchTerm : String) : Seq[SearchResult] = {
-    log.info("Searching for \"%s\" on <%s>", searchTerm, url)
+    log.info("Searching for \"%s\" on <%s>", searchTerm, queryUrl)
     
     val query = SearchQueryFactory.create(searchTerm, this)
     
     log.info("Remote query execution start")
-    val results = QueryExecutionFactory.sparqlService(url, query).execSelect()
+    val rawResults = QueryExecutionFactory.sparqlService(queryUrl, query).execSelect()
     log.info("Remote query execution end")
 
-    return treatResults(results)
+		val weightedResults = treatResults(rawResults)
+		val results = addPopularityScore(weightedResults)
+
+    return util.Sorting.stableSort(results)
   }
+
+	private def addPopularityScore(weightedResults : Seq[SearchResult]) : Seq[SearchResult] = {
+		popularity match {
+			case Some(popMethod) =>
+				val popMeasurer = new PopularityMeasurer(queryUrl, popMethod)
+				for(result <- weightedResults) yield {
+					new SearchResult(result, popMeasurer.getPopularity(result.uri))
+				}
+			case None =>
+				weightedResults
+				
+		}
+	}
 
   /** Takes a ResultSet and creates an array sorted according of the weight
    * of each predicates applied to an entity
@@ -74,9 +59,9 @@ class SearchBackend(val name : String,
 
       /* if varName match to one of our predicates */
       if(predicates.contains(varName)) {
-        val uri = sol.getResource(varName).toString
+        val uri = SearchBackend.normalizeUri(sol.getResource(varName).toString)
         val pred = predicates(varName)
-        val oldScore :Float = scoredResults.getOrElse(uri, 0f)
+        val oldScore = scoredResults.getOrElse(uri, 0f)
         scoredResults.update(uri, oldScore + pred.weight)
       }
     }
@@ -85,12 +70,12 @@ class SearchBackend(val name : String,
     for(key <- scoredResults.keysIterator)
       resultArray += new SearchResult(key, scoredResults(key).toFloat)
 
-    return util.Sorting.stableSort(resultArray)
+    return resultArray
   }
   
   override def toString : String = { 
     var ret = "Name : " + name + "\n" 
-    ret += "Url : " + url + "\n"
+    ret += "Url : " + queryUrl + "\n"
     
     ret +=  "\nPredicates list with their weight : \n"
     val it = predicates.valuesIterator
@@ -120,24 +105,51 @@ object SearchBackend extends Logging {
     val name = (config\"name").text
     val queryUrl = (config\"end-point"\"url").text
 
+		/* Get the predicates to use */
     var predicates = new collection.immutable.HashMap[String, Predicate]()
     for (predNode <- config\"search"\"search-predicate") {
-      val uri = {
-        val uriText = (predNode\"@uri").text
-        if (uriText.startsWith("http://")) "<" + uriText + ">"
-        else uriText
-      }
+      val uri = normalizeUri((predNode\"@uri").text)
       val pred = Predicate(uri, (predNode\"@weight").text.toFloat)
       predicates += (pred.key -> pred)
     }
 
+		/* Get match method to use */
     val matchMethod = (config\"search"\"match"\"type").text
     val containsUri = 
       if(matchMethod == "contains")
-        "<"+ (config\"search"\"match"\"contains-uri").text +">"
+        normalizeUri((config\"search"\"match"\"contains-uri").text)
       else
         ""
 
-    return new SearchBackend(name, queryUrl, predicates, new Match(matchMethod, containsUri))
+		/* Get the popularity measurement method */
+		val popMeasure = config\"popularity"\"measure"
+		val popMethod = 
+			if(popMeasure.isEmpty) {
+				println("Empty : " + popMeasure)
+				None
+			} else {
+				val popPredicate = normalizeUri((popMeasure\"predicate").text)
+				val popMax = (popMeasure\"max").text.toFloat
+				Some(new PopularityMethod(popPredicate, popMax))
+			}
+
+    new SearchBackend(name,
+					            queryUrl,
+								      predicates,
+									    new Match(matchMethod, containsUri),
+					            popMethod)
   }
+
+	/** 
+	 * Normalize a URI for use in SPARQL.
+	 * 
+	 * @param uriText URI to normalize
+	 * @return <uriText> if the URI doesn't use a prefix, uriText otherwise
+	 */
+	def normalizeUri(uriText : String) : String = {
+		if(uriText.startsWith("http://") || uriText.startsWith("bif:"))
+			"<"+uriText+">"
+		else
+			uriText
+	}
 }
