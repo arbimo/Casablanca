@@ -31,12 +31,18 @@ class SearchBackend(val name : String,
     log.info("Remote query execution end")
 
 		val weightedResults = treatResults(rawResults)
-		val results = addPopularityScore(weightedResults)
+		val results = retrievePopularityScore(weightedResults)
 
     return util.Sorting.stableSort(results)
   }
 
-	private def addPopularityScore(weightedResults : Seq[SearchResult]) : Seq[SearchResult] = {
+	/**
+	 * This function retrieves popularity score of a Seq of SearchResult
+	 * 
+	 * @param weightedResults a Seq of SearchResults without popularityScores
+	 * @return a Seq of SearchResult with their corresponding popularity scores
+	 */
+	private def retrievePopularityScore(weightedResults : Seq[SearchResult]) : Seq[SearchResult] = {
 		popularity match {
 			case Some(popMethod) =>
 				val popMeasurer = new PopularityMeasurer(queryUrl, popMethod)

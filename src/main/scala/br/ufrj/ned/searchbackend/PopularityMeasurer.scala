@@ -49,7 +49,13 @@ class PopularityMeasurer(endPoint : String, method : PopularityMethod) extends L
 	 * @return a Seq of QueryExecution
 	 */
 	private def queryFor(entities : Seq[String]) : Seq[QueryExecution] = {
-		var queriesText = new Array[String](entities.length/maxVar + 1)
+		val nbOfQueries = 
+			if(entities.length % maxVar == 0)
+				entities.length / maxVar
+			else
+				entities.length / maxVar + 1
+		
+		var queriesText = new Array[String](nbOfQueries)
 		for(i <- 0 to entities.length-1) {
 			val current = i/maxVar
 			if(i%maxVar == 0) {
