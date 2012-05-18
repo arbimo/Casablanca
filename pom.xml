@@ -46,7 +46,12 @@
     <build>
         <sourceDirectory>src/main/scala</sourceDirectory>
         <testSourceDirectory>src/test/scala</testSourceDirectory>
-        <plugins>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+			</resource>
+		</resources>
+		<plugins>
             <plugin>
                 <groupId>org.scala-tools</groupId>
                 <artifactId>maven-scala-plugin</artifactId>
@@ -62,7 +67,7 @@
                     <launchers>
                         <launcher>
                             <id>Casablanca</id>
-                            <mainClass>br.ufrj.ner.Main</mainClass>
+                            <mainClass>br.ufrj.ned.Main</mainClass>
                             <args>
                                 <arg>${basedir}/src/resources/local-yago.xml</arg>
                                 <arg>Casablanca</arg>
