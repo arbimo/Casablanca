@@ -7,8 +7,9 @@ import br.ufrj.ned.searchbackend._
 class SearchWS {
   @GET @Produces(Array("text/xml"))
   def doGet(@PathParam("searchTerm") searchTerm:String) = {
-		val config = "/home/arthur/Info/ScalaJena/search-service/src/main/resources/local-yago.xml"
-		val sb = SearchBackend(scala.xml.XML.loadFile(config))
+                val confDir = System.getenv("UFRJ_NED_CONF")
+		val configFile = confDir + "default.xml"
+		val sb = SearchBackend(scala.xml.XML.loadFile(configFile))
 		val resultSeq = sb.search(searchTerm)
 		(<search term={searchTerm}>{resultSeq.map(res => res.toXML)}</search>).toString
 	}
