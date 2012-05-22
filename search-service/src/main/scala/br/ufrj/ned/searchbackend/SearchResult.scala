@@ -15,4 +15,11 @@ case class SearchResult(val uri : String, val matchScore : Float, val popScore :
 	def score = matchScore * popScore
   override def compare(other : SearchResult) = - this.score.compare(other.score)
   override def toString() = score+" - "+matchScore+" - "+popScore+" - "+uri
+	def toXML() =
+		<search-result>
+			<uri>{uri}</uri>
+			<score>{score}</score>
+			<match-score>{matchScore}</match-score>
+			<popularity-score>{popScore}</popularity-score>
+		</search-result>
 }

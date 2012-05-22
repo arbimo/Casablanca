@@ -43,7 +43,7 @@ object Main extends App with Logging {
     
       val configFile =
         if(args.length == 1)
-          "/home/arthur/Info/ScalaJena/src/main/resources/local-yago.xml"
+          "/home/arthur/Info/ScalaJena/search-service/src/main/resources/local-yago.xml"
         else
           args(args.length-2)
 

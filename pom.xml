@@ -38,4 +38,8 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+		<properties>
+			<scala.version>2.9.1</scala.version>
+		</properties>
 </project>

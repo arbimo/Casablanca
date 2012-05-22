@@ -103,6 +103,15 @@ class SearchBackend(val name : String,
  */
 object SearchBackend extends Logging {
 
+  /**
+	 * Constructor for SearchBackend
+   *
+   * @param configFile a file path containing the XML configuration
+   * @return a SearchBackend built from the configuration
+   */
+	def apply(configFile : String) : SearchBackend =
+		SearchBackend(scala.xml.XML.loadFile(configFile))
+
   /**Constructor for SearchBackend
    *
    * @param config an xml node containing the configuration
