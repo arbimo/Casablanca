@@ -1,0 +1,17 @@
+<search-backend>
+  <name>Local Fuseki End Point for Yago2</name>
+  <end-point>
+    <url>http://dbpedia.org/sparql</url>
+  </end-point>
+  <search>
+    <match>
+      <type>exact</type>
+    </match>
+    <search-predicate uri="http://xmlns.com/foaf/0.1/name" weight="25"/>
+  </search>
+  <popularity>
+    <measure>
+      <predicate>http://dbpedia.org/ontology/populationTotal</predicate>
+    </measure>
+  </popularity>
+</search-backend>
