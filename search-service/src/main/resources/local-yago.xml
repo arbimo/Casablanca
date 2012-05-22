@@ -13,9 +13,9 @@
     <search-predicate uri="http://yago-knowledge.org/resource/hasGivenName" weight="5"/>
   </search>
   <popularity>
-	  <measure>
-		  <predicate>http://yago-knowledge.org/resource/hasNumberOfWikipediaLinks</predicate>
-		  <max>1000</max>
-	  </measure>
+    <measure>
+      <predicate>http://yago-knowledge.org/resource/hasNumberOfWikipediaLinks</predicate>
+      <max>1000</max>
+    </measure>
   </popularity>
 </search-backend>
