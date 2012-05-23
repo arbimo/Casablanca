@@ -20,7 +20,7 @@
         </dependency>
 
         <!-- Jersey and Servlet (for the REST API) -->
-				<dependency>
+        <dependency>
             <groupId>com.sun.jersey</groupId>
             <artifactId>jersey-server</artifactId>
             <version>${jersey.version}</version>
@@ -140,7 +140,7 @@
     <properties>
       <jetty.version>6.1.18</jetty.version>
       <jersey.version>1.0.2</jersey.version>
-			<scala.version>2.9.1</scala.version>
+      <scala.version>2.9.1</scala.version>
     </properties>
     
 </project>

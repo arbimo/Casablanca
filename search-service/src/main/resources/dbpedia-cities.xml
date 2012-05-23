@@ -1,5 +1,5 @@
 <search-backend>
-  <name>Local Fuseki End Point for Yago2</name>
+  <name>A DBPedia search backend for cities</name>
   <end-point>
     <url>http://dbpedia.org/sparql</url>
   </end-point>
@@ -12,6 +12,7 @@
   <popularity>
     <measure>
       <predicate>http://dbpedia.org/ontology/populationTotal</predicate>
+      <max>1000000</max>
     </measure>
   </popularity>
 </search-backend>

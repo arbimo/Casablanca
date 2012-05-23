@@ -18,7 +18,7 @@ class SearchBackend(val name : String,
                     val queryUrl : String,
                     val predicates : HashMap[String, Predicate],
                     val matchInfo : Match,
-										val popularity : Option[PopularityMethod]
+                    val popularity : Option[PopularityMethod]
                      ) extends Logging {
 
   def search(searchTerm : String) : Seq[SearchResult] = {
@@ -30,31 +30,31 @@ class SearchBackend(val name : String,
     val rawResults = QueryExecutionFactory.sparqlService(queryUrl, query).execSelect()
     log.info("Remote query execution end")
 
-		val weightedResults = treatResults(rawResults)
-		val results = retrievePopularityScore(weightedResults)
+    val weightedResults = treatResults(rawResults)
+    val results = retrievePopularityScore(weightedResults)
 
     return util.Sorting.stableSort(results)
   }
 
-	/**
-	 * This function retrieves popularity score of a Seq of SearchResult
-	 * 
-	 * @param weightedResults a Seq of SearchResults without popularityScores
-	 * @return a Seq of SearchResult with their corresponding popularity scores
-	 */
-	private def retrievePopularityScore(weightedResults : Seq[SearchResult]) : Seq[SearchResult] = {
-		popularity match {
-			case Some(popMethod) =>
-				val popMeasurer = new PopularityMeasurer(queryUrl, popMethod)
-				val entities = weightedResults map {_.uri}
-				val popularities = popMeasurer.getPopularities(entities)
+  /**
+   * This function retrieves popularity score of a Seq of SearchResult
+   * 
+   * @param weightedResults a Seq of SearchResults without popularityScores
+   * @return a Seq of SearchResult with their corresponding popularity scores
+   */
+  private def retrievePopularityScore(weightedResults : Seq[SearchResult]) : Seq[SearchResult] = {
+    popularity match {
+      case Some(popMethod) =>
+        val popMeasurer = new PopularityMeasurer(queryUrl, popMethod)
+        val entities = weightedResults map {_.uri}
+        val popularities = popMeasurer.getPopularities(entities)
 
-				for(i <- 0 to weightedResults.length-1) yield
-					new SearchResult(weightedResults(i), popularities(i))
-			case None =>
-				weightedResults
-		}
-	}
+        for(i <- 0 to weightedResults.length-1) yield
+          new SearchResult(weightedResults(i), popularities(i))
+      case None =>
+        weightedResults
+    }
+  }
 
   /** Takes a ResultSet and creates an array sorted according of the weight
    * of each predicates applied to an entity
@@ -104,76 +104,82 @@ class SearchBackend(val name : String,
 object SearchBackend extends Logging {
 
   /**
-	 * Constructor for SearchBackend
+   * Constructor for SearchBackend
    *
    * @param configFile a file path containing the XML configuration
    * @return a SearchBackend built from the configuration
    */
-	def apply(configFile : String) : SearchBackend =
-		SearchBackend(scala.xml.XML.loadFile(configFile))
+  def apply(configFile : String) : Option[SearchBackend] =
+    SearchBackend(scala.xml.XML.loadFile(configFile))
 
   /**Constructor for SearchBackend
    *
    * @param config an xml node containing the configuration
    * @return a SearchBackend built from the configuration
    */
-  def apply(config : scala.xml.Node) : SearchBackend = {
-    val name = (config\"name").text
-    val queryUrl = (config\"end-point"\"url").text
-
-		/* Get the predicates to use */
-    var predicates = new collection.immutable.HashMap[String, Predicate]()
-    for (predNode <- config\"search"\"search-predicate") {
-      val uri = normalizeUri((predNode\"@uri").text)
-      val pred = Predicate(uri, (predNode\"@weight").text.toFloat)
-      predicates += (pred.key -> pred)
-    }
-
-		/* Get match method to use */
-    val matchMethod = (config\"search"\"match"\"type").text
-    val containsUri = 
-      if(matchMethod == "contains")
-        normalizeUri((config\"search"\"match"\"contains-uri").text)
+  def apply(config : scala.xml.Node) : Option[SearchBackend] = {
+    try {
+      val name = (config\"name").text
+      val queryUrl = (config\"end-point"\"url").text
+      
+      /* Get the predicates to use */
+      var predicates = new collection.immutable.HashMap[String, Predicate]()
+      for (predNode <- config\"search"\"search-predicate") {
+        val uri = normalizeUri((predNode\"@uri").text)
+        val pred = Predicate(uri, (predNode\"@weight").text.toFloat)
+        predicates += (pred.key -> pred)
+      }
+      
+      /* Get match method to use */
+      val matchMethod = (config\"search"\"match"\"type").text
+      val containsUri = 
+        if(matchMethod == "contains")
+          normalizeUri((config\"search"\"match"\"contains-uri").text)
       else
         ""
-
-		/* Get the popularity measurement method */
-		val popMeasure = config\"popularity"\"measure"
-		val popMethod = 
-			if(popMeasure.isEmpty) {
-				println("Empty : " + popMeasure)
-				None
-			} else {
-				val popPredicate = normalizeUri((popMeasure\"predicate").text)
-				val popMax = (popMeasure\"max").text.toFloat
-				Some(new PopularityMethod(popPredicate, popMax))
-			}
-
-    new SearchBackend(name,
-					            queryUrl,
-								      predicates,
-									    new Match(matchMethod, containsUri),
-					            popMethod)
+      
+      /* Get the popularity measurement method */
+      val popMeasure = config\"popularity"\"measure"
+      val popMethod = 
+        if(popMeasure.isEmpty) {
+          println("Empty : " + popMeasure)
+          None
+        } else {
+          val popPredicate = normalizeUri((popMeasure\"predicate").text)
+          val popMax = (popMeasure\"max").text.toFloat
+          Some(new PopularityMethod(popPredicate, popMax))
+        }
+      
+      Some(new SearchBackend(name,
+                             queryUrl,
+                             predicates,
+                             new Match(matchMethod, containsUri),
+                             popMethod))
+    } catch {
+      case e => 
+        log.error("Unable to read XML : %s", e)
+        None
+    }
   }
 
-	/** 
-	 * Normalize a URI for use in SPARQL.
-	 * 
-	 * @param uriText URI to normalize
-	 * @return <uriText> if the URI doesn't use a prefix, uriText otherwise
-	 */
-	def normalizeUri(uriText : String) : String = {
-		def clean(uri:String) = 
-			if(uri.contains("\"")) {
-				log.error("This URI contains double quotes : "+uri)
-				uri.replaceAll("\"", "")
-			} else
-				uri
-		
+  /** 
+   * Normalize a URI for use in SPARQL.
+   * 
+   * @param uriText URI to normalize
+   * @return <uriText> if the URI doesn't use a prefix, uriText otherwise
+   */
+  def normalizeUri(uriText : String) : String = {
+    def clean(uri:String) = 
+      if(uri.contains("\"")) {
+        log.error("This URI contains double quotes : "+uri)
+        uri.replaceAll("\"", "")
+      } else
+        uri
+    
 
-		if(uriText.startsWith("http://") || uriText.startsWith("bif:"))
-			"<"+clean(uriText)+">"
-		else
-			clean(uriText)
-	}
+    if(uriText.startsWith("http://") || uriText.startsWith("bif:"))
+      "<"+clean(uriText)+">"
+    else
+      clean(uriText)
+  }
 }

@@ -3,6 +3,7 @@ package br.ufrj.ned;
 
 import com.hp.hpl.jena.query._
 import br.ufrj.ned.searchbackend._
+import br.ufrj.ned.backendmanager._
 
 import com.codahale.logula.Logging
 import org.apache.log4j.Level
@@ -34,6 +35,9 @@ object Main extends App with Logging {
     initLogging
     log.info("Running UFRJ-NER")
 
+    // TODO: cleaner startup process
+    //BackendManager.start()
+
     try {
       val searchTerm =
         if(args.length >= 1)
@@ -41,13 +45,11 @@ object Main extends App with Logging {
         else
           throw new IllegalArgumentException("No search term provided")
     
-      val configFile =
-        if(args.length == 1)
-          "/home/arthur/Info/ScalaJena/search-service/src/main/resources/local-yago.xml"
-        else
-          args(args.length-2)
+      // TODO: cleaner startup process
+      //BackendManager ! new LoadFromDir(System.getenv("UFRJ_NED_CONF"))
 
-      val sb = SearchBackend(scala.xml.XML.loadFile(configFile))
+      val backendOption = BackendManager !? RetrieveDefault
+      val sb = backendOption match {case sb:SearchBackend => sb }
 
       val results = sb.search(searchTerm)
       results.reverse.foreach(result => println(result))
@@ -58,6 +60,9 @@ object Main extends App with Logging {
         println("Unvalid arguments, use the following schema :")
         println("run [ config-file ] search-term")
         log.error("Arguments are not valid (%s)", args.mkString(" "))
+    } finally {
+      BackendManager ! 'quit
     }
+    
   }
 }
