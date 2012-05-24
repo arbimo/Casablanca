@@ -1,12 +1,9 @@
 
-
 # Project description
 
 This project is part of a Scientific Initiation conducted at the Universidade Federal do Rio de Janeiro.
 It aims to provide tools to make Named Entities Disambiguation (NED) easier.
 
-
-# Current state
 
 # Conception overview
 
@@ -212,6 +209,8 @@ Note
 
 The *contains match* aims at providing a way to make an extended search (i.e. if the word is present among others) while relying on full text search capabilities of RDF stores to make the query efficient.
 
+The configuration to provide in order to get a *contains match* search is the following :
+
 ```XML
 <search-backend>
   ...
@@ -224,6 +223,26 @@ The *contains match* aims at providing a way to make an extended search (i.e. if
   </search>
 </search-backend>
 ```
+
+The SPARQL schema is the following :
+
+```SPARQL
+?variable <search-predicate> ?text .
+?text <contains-uri> "search-term" .
+```
+
+Letś say we are using `bif:contains` as a search predicate (which is the full-text search predicaete for virtuoso instances0> Therefore a complete request with two search predicates looking for *Casablanca* would be :
+
+```SPARQL
+SELECT ?rdfslabel ?yagoname  WHERE {
+  { ?rdfslabel rdfs:label ?text .
+    ?text <bif:contains> "Casablanca" }
+  UNION
+  { ?yagoname yago:name  ?text .
+    ?text <bif:contains> "Casablanca" }
+}
+```
+
 
 ## Scores
 
