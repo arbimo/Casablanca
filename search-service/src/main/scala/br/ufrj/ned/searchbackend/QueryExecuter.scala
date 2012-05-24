@@ -12,15 +12,15 @@ import scala.actors.Actor
  * Usage : queryExecuter !? (timeout, queryExecution)
  */
 class QueryExecuter extends Actor with Logging {
-	start()
-	
-	def act() {
-		receive {
-			case queryExec : QueryExecution =>
-				println("Received query")
-				reply(queryExec.execSelect)
-		}
-		
-	}
+  start()
+  
+  def act() {
+    receive {
+      case queryExec : QueryExecution =>
+        println("Received query")
+        reply(queryExec.execSelect)
+    }
+    
+  }
 
 }
