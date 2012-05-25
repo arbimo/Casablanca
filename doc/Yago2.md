@@ -65,6 +65,7 @@ SELECT * WHERE {
 
 
 ### List of Yago2 predicates :
+
 ```
 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>
 <http://yago-knowledge.org/resource/wasBornIn>
