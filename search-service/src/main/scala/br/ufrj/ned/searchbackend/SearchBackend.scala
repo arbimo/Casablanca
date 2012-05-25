@@ -142,7 +142,6 @@ object SearchBackend extends Logging {
       val popMeasure = config\"popularity"\"measure"
       val popMethod = 
         if(popMeasure.isEmpty) {
-          println("Empty : " + popMeasure)
           None
         } else {
           val popPredicate = normalizeUri((popMeasure\"predicate").text)

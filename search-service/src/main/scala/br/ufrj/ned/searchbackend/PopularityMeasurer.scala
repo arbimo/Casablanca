@@ -1,6 +1,7 @@
 package br.ufrj.ned.searchbackend
 
 import com.hp.hpl.jena.query.ResultSet
+import com.hp.hpl.jena.sparql.resultset.ResultSetException
 import scala.collection.JavaConversions._
 import com.codahale.logula.Logging
 import com.hp.hpl.jena.query.QueryExecution
@@ -114,9 +115,16 @@ class PopularityMeasurer(endPoint : String, method : PopularityMethod) extends L
     val resultsSet = queryFor(entities).map { _.execSelect }
     val popArray = new Array[Float](entities.length)
 
-    for(results <- resultsSet ; sol <- results ; variable <- sol.varNames) 
-      popArray(variable.toInt) = sol.getLiteral(variable).getFloat
-    
+    try {
+      for(results <- resultsSet ; sol <- results ; variable <- sol.varNames) 
+        popArray(variable.toInt) = sol.getLiteral(variable).getFloat
+    } catch {
+      case e : ResultSetException =>
+        log.error("Unvalid Result set return. All popularities are set to 1")
+        log.error(e.toString)
+        for(i <- 0 to popArray.length-1)
+          popArray(i) = 1f
+    }
     popArray
   }
 }

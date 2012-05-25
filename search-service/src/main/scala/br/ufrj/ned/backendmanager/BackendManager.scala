@@ -22,6 +22,11 @@ case object RetrieveDefault
 case class RetrieveBackend(id : Int) 
 
 /**
+ * This message is used to set the default backend backend to use.
+ */
+case class SetDefault(id : Int)
+
+/**
  * This message is used to load every XML file of a directory in the 
  * availables backends
  */
@@ -63,7 +68,7 @@ object BackendManager extends Actor with Logging {
   private def loadFromDir(dir : File) {
     try {
       if(!dir.isDirectory) 
-        throw new Exception("Parameter is not a directory")
+        throw new Exception("Parameter is not a directory" + dir)
 
       val fileList = dir.listFiles.map(_.getPath)
       for(file <- fileList ; if file.endsWith(".xml")) {
@@ -77,7 +82,6 @@ object BackendManager extends Actor with Logging {
           }
           case None => log.warn("Unable to load config file %s", file)
         }
-        println(backends.length)
       }
     } catch {
       case e => 
@@ -112,6 +116,12 @@ object BackendManager extends Actor with Logging {
             reply(backends(defaultBackend))
           else
             reply(None)
+
+        case SetDefault(id) =>
+          if(id>=0 && id < backends.length)
+            defaultBackend = id
+          else
+            log.warn("Request backend is not in availables one. Id : %d", id)
 
         case LoadFromDir(dir) => loadFromDir(new File(dir))
           

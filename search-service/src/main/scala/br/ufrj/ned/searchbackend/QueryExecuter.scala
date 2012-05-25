@@ -17,7 +17,6 @@ class QueryExecuter extends Actor with Logging {
   def act() {
     receive {
       case queryExec : QueryExecution =>
-        println("Received query")
         reply(queryExec.execSelect)
     }
     

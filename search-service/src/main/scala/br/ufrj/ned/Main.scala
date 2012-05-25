@@ -30,39 +30,67 @@ object Main extends App with Logging {
       log.syslog.enabled = false
     }
   }
+
+  private def helpString =  "Usage : \n" +
+    " - help     : print this help\n" +
+    " - list     : list the different dataset availables\n" +
+    " - load 3   : set the 3rd backend as the default\n" +
+    " - search Casablanca   :  Search for Casablanca on the default backend\n" +
+    " - request Casablanca  :  prints the request that bould be executed with \"search Casablanca\"\n"+
+    " - exit     : quit the application\n"
+  
   
   override def main(args : Array[String]) = {
     initLogging
-    log.info("Running UFRJ-NER")
+    log.info("Running UFRJ-NED")
 
     // TODO: cleaner startup process
     //BackendManager.start()
 
     try {
-      val searchTerm =
-        if(args.length >= 1)
-          args.last
-        else
-          throw new IllegalArgumentException("No search term provided")
+      var exit = false
+      println(helpString)
     
-      // TODO: cleaner startup process
-      //BackendManager ! new LoadFromDir(System.getenv("UFRJ_NED_CONF"))
+      while(!exit) {
+        print("> ")
+        val cmd = readLine
 
-      val backendOption = BackendManager !? RetrieveDefault
-      val sb = backendOption match {case sb:SearchBackend => sb }
+        if(cmd == null || cmd == "exit") {
+          exit = true
+        } else if(cmd == "help") {
+          println(helpString)
+        } else if(cmd == "list") {
+          println(BackendManager)
+        } else if(cmd.startsWith("load ")) {
+          val id = cmd.drop(("load ").length).toInt
+          BackendManager ! new SetDefault(id)
+          println("Loading backend " + id)
+          
+        } else if(cmd.startsWith("search ")) {
+          val searchTerm = cmd.drop(("search ").length)
 
-      val results = sb.search(searchTerm)
-      results.reverse.foreach(result => println(result))
-
+          val backendOption = BackendManager !? RetrieveDefault
+          val sb = backendOption match {case sb:SearchBackend => sb }
+          println("Looking for \""+searchTerm+"\" on "+sb.name)
+          
+          val results = sb.search(searchTerm)
+          results.reverse.foreach(result => println(result))
+        } else if(cmd.startsWith("request ")) {
+          val searchTerm = cmd.drop(("request ").length)
+          val backendOption = BackendManager !? RetrieveDefault
+          val sb = backendOption match {case sb:SearchBackend => sb }
+          println(SearchQueryFactory.create(searchTerm, sb))
+        } else {
+          println("This was not a valid command")
+          println(helpString)
+        }
+      }
     } catch {
       case e: IllegalArgumentException =>
         println(e)
-        println("Unvalid arguments, use the following schema :")
-        println("run [ config-file ] search-term")
         log.error("Arguments are not valid (%s)", args.mkString(" "))
     } finally {
       BackendManager ! 'quit
     }
-    
   }
 }

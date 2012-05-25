@@ -256,6 +256,7 @@ SELECT ?rdfslabel ?yagoname  WHERE {
 
 > Note : Performance might increase by moving `?text <bif:contains> "Casablanca"` to the root of the search.
 
+> Note : no support for [language tags](http://www.w3.org/TR/rdf-sparql-query/#matchLangTags)
 
 ## Scores
 

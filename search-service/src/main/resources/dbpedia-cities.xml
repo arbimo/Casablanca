@@ -5,7 +5,8 @@
   </end-point>
   <search>
     <match>
-      <type>exact</type>
+      <type>contains</type>
+      <contains-uri>bif:contains</contains-uri>
     </match>
     <search-predicate uri="http://xmlns.com/foaf/0.1/name" weight="25"/>
   </search>

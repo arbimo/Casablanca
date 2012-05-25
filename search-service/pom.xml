@@ -71,10 +71,6 @@
                         <launcher>
                             <id>Casablanca</id>
                             <mainClass>br.ufrj.ned.Main</mainClass>
-                            <args>
-                                <arg>${basedir}/src/resources/local-yago.xml</arg>
-                                <arg>Casablanca</arg>
-                            </args>
                         </launcher>
                     </launchers>
                 </configuration>
