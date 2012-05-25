@@ -1,3 +1,6 @@
+%Project overview
+%Arthur Bit-Monnot
+
 
 # Project description
 
@@ -42,7 +45,7 @@ for SPARQL 1.1 and Yago core provides a ready to use TDB format for Yago core
 Jena TDB format.
 
 The main problem with Fuseki/TDB is that the time needed to had triples grows with the size of the dataset. Therefore it was nearly impossible to export the whole Yago dataset (operation would have required weeks on a classic computer). 
-The solution was to base our self on the Yago core dataset (which is avalable in the TDB format) and extend it with the predicates we are interested in. More information on this operation will be available in the dataset-creation document soon.
+The solution was to base our self on the Yago core dataset (which is avalable in the TDB format) and extend it with the predicates we are interested in. More information on this operation will be available in a dataset-creation document soon.
 
 [^public-yago]: <http://lod.openlinksw.com/sparql>
 
@@ -116,10 +119,18 @@ Each predicate to use should come as the `<uri/>` of a `<search-predicate/>` nod
 ```XML
   <search>
     ...
-    <search-predicate uri="http://yago-knowledge.org/resource/hasPreferredName" weight="50"/>
-    <search-predicate uri="http://www.w3.org/2000/01/rdf-schema#label" weight="25"/>
-    <search-predicate uri="http://yago-knowledge.org/resource/hasFamilyName" weight="25"/>
-    <search-predicate uri="http://yago-knowledge.org/resource/hasGivenName" weight="5"/>
+    <search-predicate 
+      uri="http://yago-knowledge.org/resource/hasPreferredName" 
+      weight="50"/>
+    <search-predicate 
+      uri="http://www.w3.org/2000/01/rdf-schema#label" 
+      weight="25"/>
+    <search-predicate 
+      uri="http://yago-knowledge.org/resource/hasFamilyName" 
+      weight="25"/>
+    <search-predicate 
+      uri="http://yago-knowledge.org/resource/hasGivenName" 
+      weight="5"/>
   </search>
 ```
 
@@ -231,7 +242,7 @@ The SPARQL schema is the following :
 ?text <contains-uri> "search-term" .
 ```
 
-Letś say we are using `bif:contains` as a search predicate (which is the full-text search predicaete for virtuoso instances0> Therefore a complete request with two search predicates looking for *Casablanca* would be :
+Let's say we are using `bif:contains` as a search predicate (which is the full-text search predicaete for virtuoso instances). Therefore a complete request with two search predicates looking for *Casablanca* would be :
 
 ```SPARQL
 SELECT ?rdfslabel ?yagoname  WHERE {
@@ -243,12 +254,34 @@ SELECT ?rdfslabel ?yagoname  WHERE {
 }
 ```
 
+> Note : Performance might increase by moving `?text <bif:contains> "Casablanca"` to the root of the search.
+
 
 ## Scores
 
+Score aims to provide way to sort results according their relevance.
+Here relevance is not directly measureable because a word - away from his context - refers to several entities.
+
+Therefore the score should link to the probability of a word pointing to a specific entity.
+
+Some methods have been described in the litterature [ references ] on that subject but they are all dependant on a specific dataset. For exampmle [DBPedia Spotlight] measures the number of occurence of an anchor text to refer to an entity. While this methods provides good results, it relies on metadata that is usually excluded from dataset.
+
+In this project we focus on two measures that are easily adaptable on a large number of datasets.
+
 ### Match score
 
+A dataset usually contains various text predicates. Among them some are more relevant to a search that aims at selecting a candidtate.
+
+For example a match in a `dbpedia:abstract` is far less interesting than a match on a `foaf:name` property.
+
+This is done by attributing a weight to each *search predicate*. Whenever a match is found for an entity, the weight of the predicate is added to the *match-score* of the entity.
+
 ### Popularity score
+
+
+
+
+> TODO : provide a normalized way to measure scores
 
 ## Type constraint
 
@@ -262,7 +295,12 @@ Not implemented yet
 
 
 
+# References
+
+
+
 [Fuseki]: http://jena.apache.org/documentation/serving_data/
 [Jena]: http://jena.apache.org/
 [Yago]: http://www.mpi-inf.mpg.de/yago-naga/yago/index.html
 [Scala]: http://www.scala-lang.org/
+[DBPedia Spotlight]: http://spotlight.dbpedia.org/
