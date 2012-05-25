@@ -15,7 +15,6 @@
   <popularity>
     <measure>
       <predicate>http://yago-knowledge.org/resource/hasNumberOfWikipediaLinks</predicate>
-      <max>1000</max>
     </measure>
   </popularity>
 </search-backend>

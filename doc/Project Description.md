@@ -271,18 +271,35 @@ In this project we focus on two measures that are easily adaptable on a large nu
 
 ### Match score
 
-A dataset usually contains various text predicates. Among them some are more relevant to a search that aims at selecting a candidtate.
+A dataset usually contains various text predicates. Among them some are more relevant to a search that aims at selecting a candidate.
 
 For example a match in a `dbpedia:abstract` is far less interesting than a match on a `foaf:name` property.
 
 This is done by attributing a weight to each *search predicate*. Whenever a match is found for an entity, the weight of the predicate is added to the *match-score* of the entity.
 
+Note
+ ~    right now the weight is added multiple times if there multiple matches for a same predicate.
+
 ### Popularity score
 
+The popularity score provides a way to measure how likely an entity his to be referenced. 
 
+The measurement will be different for each type of entity and the predicate is likely to change for every dataset. An example of this is the *DBPedia cities* backend where a the popularity measure uses the population of the place :
 
+```XML
+<search-backend>
+  ...
+  <popularity>
+    <measure>
+      <predicate>http://dbpedia.org/ontology/populationTotal</predicate>
+      <max>1000000</max>
+    </measure>
+  </popularity>
+  ...
+</search-backend>
+```
 
-> TODO : provide a normalized way to measure scores
+> TODO : provide a normalized way to measure scores where increase become less important with high values
 
 ## Type constraint
 

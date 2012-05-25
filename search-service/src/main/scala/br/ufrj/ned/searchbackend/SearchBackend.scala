@@ -147,8 +147,7 @@ object SearchBackend extends Logging {
           None
         } else {
           val popPredicate = normalizeUri((popMeasure\"predicate").text)
-          val popMax = (popMeasure\"max").text.toFloat
-          Some(new PopularityMethod(popPredicate, popMax))
+          Some(new PopularityMethod(popPredicate))
         }
 
       /* get the type constraints */

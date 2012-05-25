@@ -13,7 +13,6 @@
   <popularity>
     <measure>
       <predicate>http://dbpedia.org/ontology/populationTotal</predicate>
-      <max>1000000</max>
     </measure>
   </popularity>
   <type-constraint>
