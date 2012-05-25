@@ -7,6 +7,7 @@ import com.codahale.logula.Logging
 import com.hp.hpl.jena.query._
 import collection.mutable.ArrayBuffer
 import collection.immutable.HashMap
+import scala.collection.immutable.ListSet
 
 
 /** This class aims at storing information about a search backend
@@ -18,7 +19,8 @@ class SearchBackend(val name : String,
                     val queryUrl : String,
                     val predicates : HashMap[String, Predicate],
                     val matchInfo : Match,
-                    val popularity : Option[PopularityMethod]
+                    val popularity : Option[PopularityMethod],
+                    val types : Set[String]
                      ) extends Logging {
 
   def search(searchTerm : String) : Seq[SearchResult] = {
@@ -148,12 +150,19 @@ object SearchBackend extends Logging {
           val popMax = (popMeasure\"max").text.toFloat
           Some(new PopularityMethod(popPredicate, popMax))
         }
+
+      /* get the type constraints */
+      val typeConstraints = config\"type-constraint"\"type"
+      var constraints = new ListSet[String]
+      for(typeUri <- typeConstraints)
+        constraints += normalizeUri(typeUri.text)
       
       Some(new SearchBackend(name,
                              queryUrl,
                              predicates,
                              new Match(matchMethod, containsUri),
-                             popMethod))
+                             popMethod,
+                             constraints))
     } catch {
       case e => 
         log.error("Unable to read XML : %s", e)
@@ -174,7 +183,6 @@ object SearchBackend extends Logging {
         uri.replaceAll("\"", "")
       } else
         uri
-    
 
     if(uriText.startsWith("http://") || uriText.startsWith("bif:"))
       "<"+clean(uriText)+">"

@@ -41,12 +41,21 @@ object SearchQueryFactory {
       
       while(it.hasNext) {
         val p = it.next
+        body += " { "
+
+        /* search part*/
         if(backend.matchInfo.method == "contains") {
-          body += "{ " + "?" + p.key + " " + p.uri + " ?containsText ."
-          body += "?containsText " + backend.matchInfo.uri + " \"" + searchTerm + "\" . } "
+          body += "?" + p.key + " " + p.uri + " ?containsText ."
+          body += "?containsText " + backend.matchInfo.uri + " \"" + searchTerm + "\" .  "
         } else {
-          body += "{ " + "?" + p.key + " " + p.uri + " \"" + searchTerm + "\" . } "
+          body += "?" + p.key + " " + p.uri + " \"" + searchTerm + "\" .  "
         }
+
+        /* type constraint */
+        for(typeUri <- backend.types)
+          body += "?" + p.key + " a " + typeUri + " . "
+      
+        body += " } "
         if(it.hasNext)
           body += " UNION "
       }

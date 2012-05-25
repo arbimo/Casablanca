@@ -1,5 +1,5 @@
 <search-backend>
-  <name>A DBPedia search backend for cities</name>
+  <name>A DBPedia search backend for populated places</name>
   <end-point>
     <url>http://dbpedia.org/sparql</url>
   </end-point>
@@ -16,4 +16,7 @@
       <max>1000000</max>
     </measure>
   </popularity>
+  <type-constraint>
+    <type>http://dbpedia.org/ontology/PopulatedPlace</type>
+  </type-constraint>
 </search-backend>

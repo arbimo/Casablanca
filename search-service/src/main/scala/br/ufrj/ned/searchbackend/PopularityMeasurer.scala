@@ -112,16 +112,16 @@ class PopularityMeasurer(endPoint : String, method : PopularityMethod) extends L
    * @return a Seq of popularities with the same index as the corresponding entity
    */
   def getPopularities(entities : Seq[String]) : Seq[Float] = {
-    val resultsSet = queryFor(entities).map { _.execSelect }
     val popArray = new Array[Float](entities.length)
-
     try {
+      val resultsSet = queryFor(entities).map { _.execSelect }
+
       for(results <- resultsSet ; sol <- results ; variable <- sol.varNames) 
         popArray(variable.toInt) = sol.getLiteral(variable).getFloat
     } catch {
-      case e : ResultSetException =>
-        log.error("Unvalid Result set return. All popularities are set to 1")
+      case e : Exception =>
         log.error(e.toString)
+        log.error("Error while retrieving popularities. All popularities are set to 1")
         for(i <- 0 to popArray.length-1)
           popArray(i) = 1f
     }
