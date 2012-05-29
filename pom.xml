@@ -12,7 +12,7 @@
 
     <modules>
         <module>search-service</module>
-        <module>rest</module>
+        <module>rest-api</module>
     </modules>
 
     <build>
