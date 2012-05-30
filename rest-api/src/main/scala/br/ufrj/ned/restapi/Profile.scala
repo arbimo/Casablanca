@@ -14,7 +14,6 @@ class Profile {
   @Produces(Array("text/xml"))
   def getProfile(@PathParam("id") id:Int) = {
 
-    println("tadda")
     BackendManager !? new RetrieveBackend(id) match {
       case sb:SearchBackend => 
         sb.toXML.toString
