@@ -92,10 +92,30 @@ class SearchBackend(val name : String,
       val p = it.next
       ret += p.uri + " - " + p.weight + "\n"
     }
-    
+
     return ret
   }
-
+  
+  lazy val toXML = {
+    <search-backend>
+      <name>{name}</name>
+      <end-point>
+        <url>{queryUrl}</url>
+      </end-point>
+      <search>
+        {matchInfo.toXML}
+        {predicates.values.map(pred => pred.toXML)}
+      </search>
+      <popularity>
+        {popularity.toList.map(pop => pop.toXML)}
+      </popularity>
+      <type-constraint>
+        {types.map(typeUri => <type>{typeUri}</type>)}
+      </type-constraint>
+    </search-backend>
+  }
+  
+  
 }
 
 /**Companion object for SearchBackend defining a constructor to
@@ -104,7 +124,7 @@ class SearchBackend(val name : String,
  * Usage : `val sb = SearchBackend(scala.xml.XML.loadFile(configFile))`
  */
 object SearchBackend extends Logging {
-
+  
   /**
    * Constructor for SearchBackend
    *

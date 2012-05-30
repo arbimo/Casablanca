@@ -7,5 +7,7 @@ package br.ufrj.ned.searchbackend
 
 case class PopularityMethod(val predicate : String) {
   override def toString : String = "Measurement predicate : "+predicate
+
+  def toXML = <measure><predicate>{predicate}</predicate></measure>
 }
 

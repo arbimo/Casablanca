@@ -33,6 +33,11 @@ case class SetDefault(id : Int)
 case class LoadFromDir(dir : String)
 
 /**
+ * This message is used to retrieve an immutable list of available SearchBackends
+ */
+case object GetList
+
+/**
  * This backend manager provides a way to manage backends in a
  * thread safe way.
  */
@@ -124,6 +129,8 @@ object BackendManager extends Actor with Logging {
             log.warn("Request backend is not in availables one. Id : %d", id)
 
         case LoadFromDir(dir) => loadFromDir(new File(dir))
+
+        case GetList => reply(backends.toList)
           
         case 'quit => exit()
 

@@ -10,4 +10,15 @@ package br.ufrj.ned.searchbackend
  *
  *  - contains : `?result <search-uri> ?text . ?text <match.uri> "search-text"`
  */
-case class Match(val method : String, val uri : String)
+case class Match(val method : String, val uri : String) {
+
+  override def toString = 
+    "Match method : " + method + " - URI : " + uri
+  
+  def toXML = 
+    <match>
+      <type>{method}</type>
+      {if(method=="contains")
+        <contains-uri>{uri}</contains-uri>}
+    </match>
+}
