@@ -42,7 +42,7 @@ object SearchServer {
 
         /* Starting Backend manager */
         BackendManager.start()
-        if(!System.getenv("UFRJ_NED_CONF").isEmpty)
+        if(System.getenv("UFRJ_NED_CONF") != null)
           BackendManager ! new LoadFromDir(System.getenv("UFRJ_NED_CONF"))
 
         val httpServer = startServer();
