@@ -59,11 +59,6 @@ object BackendManager extends Actor with Logging {
    */
   private var defaultBackend = 0
 
-  // TODO : cleaner start up process
-  loadFromDir(new File(System.getenv("UFRJ_NED_CONF")))
-  start()
-
-
   /**
    * This message is used to load every XML file of a directory in the 
    * availables backends

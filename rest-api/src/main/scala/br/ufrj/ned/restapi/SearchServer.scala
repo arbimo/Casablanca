@@ -5,6 +5,9 @@ import com.sun.jersey.api.core.PackagesResourceConfig;
 
 import javax.ws.rs.core.UriBuilder;
 
+import br.ufrj.ned.backendmanager._
+
+
 
 object SearchServer {
 
@@ -36,6 +39,12 @@ object SearchServer {
     }
 
     def main(args: Array[String]) {
+
+        /* Starting Backend manager */
+        BackendManager.start()
+        if(System.getenv("UFRJ_NED_CONF") != null)
+          BackendManager ! new LoadFromDir(System.getenv("UFRJ_NED_CONF"))
+
         val httpServer = startServer();
 
         println("Server running");
@@ -43,6 +52,7 @@ object SearchServer {
         System.in.read();
         println("Stopping server");
         httpServer.stop();
+        BackendManager ! 'quit
         println("Server stopped");
         System.exit(0);
     }

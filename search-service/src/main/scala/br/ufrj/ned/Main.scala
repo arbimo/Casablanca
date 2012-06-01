@@ -44,12 +44,14 @@ object Main extends App with Logging {
     initLogging
     log.info("Running UFRJ-NED")
 
-    // TODO: cleaner startup process
-    //BackendManager.start()
-
     try {
       var exit = false
       println(helpString)
+
+      /* Starting Backend manager */
+      BackendManager.start()
+      if(System.getenv("UFRJ_NED_CONF") != null)
+        BackendManager ! new LoadFromDir(System.getenv("UFRJ_NED_CONF"))
     
       while(!exit) {
         print("> ")
