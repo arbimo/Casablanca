@@ -1,6 +1,7 @@
 package br.ufrj.ned.searchbackend
 
 import com.hp.hpl.jena.query._
+import scala.collection.JavaConversions._
 
 /** This object provides a way to create a Jena ARQ
  * query from search term and a search backend.
@@ -30,26 +31,20 @@ object SearchQueryFactory {
     def create(searchTerm : String, backend : SearchBackend) : Query = {
 
       var structBegin = "SELECT "
-      var it = backend.predicates.valuesIterator
-      while(it.hasNext)
-        structBegin += "?" + it.next.key + " "
+      for(p <- backend.predicates.values)
+        structBegin += "?" + p.key + " "
 
       structBegin += " WHERE { "
       
       var body = ""
-      it = backend.predicates.valuesIterator
       
+      val it = backend.predicates.valuesIterator
       while(it.hasNext) {
         val p = it.next
         body += " { "
 
         /* search part*/
-        if(backend.matchInfo.method == "contains") {
-          body += "?" + p.key + " " + p.uri + " ?containsText ."
-          body += "?containsText " + backend.matchInfo.uri + " \"" + searchTerm + "\" .  "
-        } else {
-          body += "?" + p.key + " " + p.uri + " \"" + searchTerm + "\" .  "
-        }
+        body += p.toSPARQL(searchTerm)
 
         /* type constraint */
         for(typeUri <- backend.types)

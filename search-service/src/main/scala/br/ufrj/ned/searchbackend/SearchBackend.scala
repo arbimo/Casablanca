@@ -17,8 +17,7 @@ import scala.collection.immutable.ListSet
   */
 class SearchBackend(val name : String,
                     val queryUrl : String,
-                    val predicates : HashMap[String, Predicate],
-                    val matchInfo : Match,
+                    val predicates : HashMap[String, SearchPredicate],
                     val popularity : Option[PopularityMethod],
                     val types : Set[String]
                      ) extends Logging {
@@ -87,11 +86,9 @@ class SearchBackend(val name : String,
     ret += "Url : " + queryUrl + "\n"
     
     ret +=  "\nPredicates list with their weight : \n"
-    val it = predicates.valuesIterator
-    while(it.hasNext) {
-      val p = it.next
-      ret += p.uri + " - " + p.weight + "\n"
-    }
+    for(p <- predicates.values) 
+      ret += p.toString
+    
 
     return ret
   }
@@ -103,7 +100,6 @@ class SearchBackend(val name : String,
         <url>{queryUrl}</url>
       </end-point>
       <search>
-        {matchInfo.toXML}
         {predicates.values.map(pred => pred.toXML)}
       </search>
       <popularity>
@@ -144,21 +140,31 @@ object SearchBackend extends Logging {
       val name = (config\"name").text
       val queryUrl = (config\"end-point"\"url").text
       
-      /* Get the predicates to use */
-      var predicates = new collection.immutable.HashMap[String, Predicate]()
-      for (predNode <- config\"search"\"search-predicate") {
-        val uri = normalizeUri((predNode\"@uri").text)
-        val pred = Predicate(uri, (predNode\"@weight").text.toFloat)
-        predicates += (pred.key -> pred)
-      }
-      
       /* Get match method to use */
       val matchMethod = (config\"search"\"match"\"type").text
       val containsUri = 
         if(matchMethod == "contains")
           normalizeUri((config\"search"\"match"\"contains-uri").text)
-      else
-        ""
+        else
+          ""
+
+      /* Get the predicates to use */
+      var predicates = new collection.immutable.HashMap[String, SearchPredicate]()
+
+      for (predNode <- config\"search"\"search-predicate") {
+        val uri = normalizeUri((predNode\"@uri").text)
+        val weight = (predNode\"@weight").text.toFloat
+
+        val pred = 
+          matchMethod match {
+            case "contains" => new ContainsPredicate(uri, weight, containsUri) 
+            case "exact" => new ExactMatchPredicate(uri, weight)
+            case _ => throw new Exception("Unable to recognize the match method : "+matchMethod)
+          }
+            
+        predicates += (pred.key -> pred)
+      }
+      
       
       /* Get the popularity measurement method */
       val popMeasure = config\"popularity"\"measure"
@@ -179,7 +185,6 @@ object SearchBackend extends Logging {
       Some(new SearchBackend(name,
                              queryUrl,
                              predicates,
-                             new Match(matchMethod, containsUri),
                              popMethod,
                              constraints))
     } catch {
