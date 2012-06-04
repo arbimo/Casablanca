@@ -1,7 +1,5 @@
 package br.ufrj.ned.searchbackend
 
-import com.hp.hpl.jena.query.ResultSet
-import com.hp.hpl.jena.sparql.resultset.ResultSetException
 import scala.collection.JavaConversions._
 import com.codahale.logula.Logging
 import com.hp.hpl.jena.query.QueryExecution
@@ -31,10 +29,10 @@ class PopularityMeasurer(endPoint : String, method : PopularityMethod) extends L
    * @param entity URI of the entity
    * @return QueryExecution which execution will give the corresponding popularity
    */
-  private def queryFor(entity : String) : QueryExecution = {
+  private def queryFor(entity : URI) : QueryExecution = {
     val queryText = 
       "SELECT ?popularity WHERE {" +
-      entity + " " + method.predicate + " "+popVariable +
+    entity.sparql + " " + method.predicate.sparql + " "+popVariable +
       " } "
 
     val query = QueryFactory.create(queryText)
@@ -49,7 +47,7 @@ class PopularityMeasurer(endPoint : String, method : PopularityMethod) extends L
    * @param entities A list of URIs for the entities to find
    * @return a Seq of QueryExecution
    */
-  private def queryFor(entities : Seq[String]) : Seq[QueryExecution] = {
+  private def queriesFor(entities : Seq[URI]) : Seq[QueryExecution] = {
     val nbOfQueries = 
       if(entities.length % maxVar == 0)
         entities.length / maxVar
@@ -62,7 +60,7 @@ class PopularityMeasurer(endPoint : String, method : PopularityMethod) extends L
       if(i%maxVar == 0) {
         queriesText(current) = "SELECT * WHERE {"
       }
-      queriesText(current) += "OPTIONAL { "+ entities(i) +" "+ method.predicate +" ?"+i +" } . " 
+      queriesText(current) += "OPTIONAL { "+ entities(i).sparql +" "+ method.predicate.sparql +" ?"+i +" } . " 
 
       if((i+1)%maxVar == 0 || i+1 == entities.length)
         queriesText(current) += " } "  
@@ -72,38 +70,6 @@ class PopularityMeasurer(endPoint : String, method : PopularityMethod) extends L
   }
   
   /**
-   * Returns the popularity associated with an entity
-   * 
-   * If no popularity is found, the popularity is set to 0
-   * 
-   * @param entity URI of the entity
-   * @return popularity associated with this URI
-   */
-  def getPopularity(entity : String) : Float = {
-    val qexec = new QueryExecuter
-
-    /* Use of timer of 200ms to avoid blocking whole application on query execution */
-    val returnValue = qexec !? (200, queryFor(entity))
-    log.warn(entity)
-    
-    val popularity  =
-      returnValue match {
-        case Some(results:ResultSet) => {
-            if(results.hasNext) {
-              results.nextSolution.getLiteral(popVariable).getFloat
-            } else {
-              log.warn("This entity has no popularity measure : "+entity)
-              0f
-            }
-        }
-        case None => 
-          log.error("Query execution timed out")
-          0f
-      }
-    popularity
-  }
-
-  /**
    * Returns a Seq of popularities associated with the entities passed as parameter
    * 
    * If no popularity is found, the popularity is set to 0
@@ -111,10 +77,10 @@ class PopularityMeasurer(endPoint : String, method : PopularityMethod) extends L
    * @param a Seq of URIs for the entities to search for
    * @return a Seq of popularities with the same index as the corresponding entity
    */
-  def getPopularities(entities : Seq[String]) : Seq[Float] = {
+  def getPopularities(entities : Seq[URI]) : Seq[Float] = {
     val popArray = new Array[Float](entities.length)
     try {
-      val resultsSet = queryFor(entities).map { _.execSelect }
+      val resultsSet = queriesFor(entities).map { _.execSelect }
 
       for(results <- resultsSet ; sol <- results ; variable <- sol.varNames) 
         popArray(variable.toInt) = sol.getLiteral(variable).getFloat

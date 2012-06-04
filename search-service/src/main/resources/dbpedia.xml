@@ -4,10 +4,11 @@
     <url>http://dbpedia.org/sparql</url>
   </end-point>
   <search>
-    <match>
-      <type>contains</type>
+    <search-predicate>
+      <uri>http://www.w3.org/2000/01/rdf-schema#label</uri>
+      <weight>25</weight>
+      <method>contains</method>
       <contains-uri>bif:contains</contains-uri>
-    </match>
-    <search-predicate uri="http://www.w3.org/2000/01/rdf-schema#label" weight="25"/>
+    </search-predicate>
   </search>
 </search-backend>

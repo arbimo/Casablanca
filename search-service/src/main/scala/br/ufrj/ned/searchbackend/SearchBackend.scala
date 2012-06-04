@@ -19,7 +19,7 @@ class SearchBackend(val name : String,
                     val queryUrl : String,
                     val predicates : HashMap[String, SearchPredicate],
                     val popularity : Option[PopularityMethod],
-                    val types : Set[String]
+                    val types : Set[URI]
                      ) extends Logging {
 
   def search(searchTerm : String) : Seq[SearchResult] = {
@@ -67,7 +67,7 @@ class SearchBackend(val name : String,
 
       /* if varName match to one of our predicates */
       if(predicates.contains(varName)) {
-        val uri = SearchBackend.normalizeUri(sol.getResource(varName).toString)
+        val uri = sol.getResource(varName).toString
         val pred = predicates(varName)
         val oldScore = scoredResults.getOrElse(uri, 0f)
         scoredResults.update(uri, oldScore + pred.weight)
@@ -140,27 +140,31 @@ object SearchBackend extends Logging {
       val name = (config\"name").text
       val queryUrl = (config\"end-point"\"url").text
       
-      /* Get match method to use */
-      val matchMethod = (config\"search"\"match"\"type").text
-      val containsUri = 
-        if(matchMethod == "contains")
-          normalizeUri((config\"search"\"match"\"contains-uri").text)
-        else
-          ""
-
       /* Get the predicates to use */
       var predicates = new collection.immutable.HashMap[String, SearchPredicate]()
 
       for (predNode <- config\"search"\"search-predicate") {
-        val uri = normalizeUri((predNode\"@uri").text)
-        val weight = (predNode\"@weight").text.toFloat
+        val uri = new URI((predNode\"uri").text)
+        val weight = (predNode\"weight").text.toFloat
 
-        val pred = 
-          matchMethod match {
-            case "contains" => new ContainsPredicate(uri, weight, containsUri) 
-            case "exact" => new ExactMatchPredicate(uri, weight)
-            case _ => throw new Exception("Unable to recognize the match method : "+matchMethod)
+        val methodNode = predNode\"method"
+
+        val pred =
+          if(methodNode.isEmpty) {
+            new ExactMatchPredicate(uri, weight)
+          } else {
+            methodNode(0).text match {
+              case "exact" =>
+                new ExactMatchPredicate(uri, weight)
+              case "contains" => 
+                val containsUri = new URI((predNode\"contains-uri").text)
+                new ContainsPredicate(uri, weight, containsUri)
+              case _ => 
+                throw new Exception("Unable to recognize the match method : " +
+                                    methodNode(0).text)
+            }
           }
+        
             
         predicates += (pred.key -> pred)
       }
@@ -172,15 +176,15 @@ object SearchBackend extends Logging {
         if(popMeasure.isEmpty) {
           None
         } else {
-          val popPredicate = normalizeUri((popMeasure\"predicate").text)
+          val popPredicate = new URI((popMeasure\"predicate").text)
           Some(new PopularityMethod(popPredicate))
         }
 
       /* get the type constraints */
       val typeConstraints = config\"type-constraint"\"type"
-      var constraints = new ListSet[String]
+      var constraints = new ListSet[URI]
       for(typeUri <- typeConstraints)
-        constraints += normalizeUri(typeUri.text)
+        constraints += new URI(typeUri.text)
       
       Some(new SearchBackend(name,
                              queryUrl,
@@ -194,23 +198,4 @@ object SearchBackend extends Logging {
     }
   }
 
-  /** 
-   * Normalize a URI for use in SPARQL.
-   * 
-   * @param uriText URI to normalize
-   * @return <uriText> if the URI doesn't use a prefix, uriText otherwise
-   */
-  def normalizeUri(uriText : String) : String = {
-    def clean(uri:String) = 
-      if(uri.contains("\"")) {
-        log.error("This URI contains double quotes : "+uri)
-        uri.replaceAll("\"", "")
-      } else
-        uri
-
-    if(uriText.startsWith("http://") || uriText.startsWith("bif:"))
-      "<"+clean(uriText)+">"
-    else
-      clean(uriText)
-  }
 }

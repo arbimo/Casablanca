@@ -4,13 +4,22 @@
     <url>http://localhost:3030/Yago/query</url>
   </end-point>
   <search>
-    <match>
-      <type>exact</type>
-    </match>
-    <search-predicate uri="http://yago-knowledge.org/resource/hasPreferredName" weight="50"/>
-    <search-predicate uri="http://www.w3.org/2000/01/rdf-schema#label" weight="25"/>
-    <search-predicate uri="http://yago-knowledge.org/resource/hasFamilyName" weight="25"/>
-    <search-predicate uri="http://yago-knowledge.org/resource/hasGivenName" weight="5"/>
+    <search-predicate>
+      <uri>http://yago-knowledge.org/resource/hasPreferredName</uri>
+      <weight>50</weight>
+    </search-predicate>
+    <search-predicate>
+      <uri>http://www.w3.org/2000/01/rdf-schema#label</uri>
+      <weight>25</weight>
+    </search-predicate>
+    <search-predicate>
+      <uri>http://yago-knowledge.org/resource/hasFamilyName</uri>
+      <weight>25</weight>
+    </search-predicate>
+    <search-predicate>
+      <uri>http://yago-knowledge.org/resource/hasGivenName</uri>
+      <weight>5</weight>
+    </search-predicate>
   </search>
   <popularity>
     <measure>

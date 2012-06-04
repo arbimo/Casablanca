@@ -7,16 +7,19 @@ import com.codahale.logula.Logging
  * and the its associated weight (i.e. how important
  * is this predicate to know which candidate matches the best)
  */
-abstract class SearchPredicate(val uri : String, val weight : Float) extends Logging {
+abstract class SearchPredicate(val uri : URI, val weight : Float) extends Logging {
 
-  val key = uri.filter(SearchPredicate.allowedKeyChars.contains(_)).mkString
+  val key = uri.xml.filter(SearchPredicate.allowedKeyChars.contains(_)).mkString
 
   /**
    * An XML representation of the SearchPredicate
    */
   def toXML = 
-    <search-predicate uri={uri} weight={weight.toString}/>
-
+    <search-predicate>
+      <uri>{uri.xml}</uri>
+      <weight>{weight.toString}</weight>
+    </search-predicate>
+  
   /**
    * A SPARQL representation of the search predicate that is meant to be used 
    * when looking for candidates.
@@ -33,15 +36,19 @@ abstract class SearchPredicate(val uri : String, val weight : Float) extends Log
  * 
  * ?key <http://.../search-predicate-uri "search-term"
  */
-class ExactMatchPredicate(uri:String, weight:Float) 
+class ExactMatchPredicate(uri:URI, weight:Float) 
             extends SearchPredicate(uri, weight) {
 
   override def toSPARQL(searchTerm : String) = {
-    "?" + key + " " + uri + " \"" + searchTerm + "\" .  "
+    "?" + key + " " + uri.sparql + " \"" + searchTerm + "\" .  "
   }
 
   override def toXML = 
-    <search-predicate uri={uri} weight={weight.toString} match="exact"/>
+    <search-predicate>
+      <uri>{uri.xml}</uri>
+      <weight>{weight.toString}</weight>
+      <method>exact</method>
+    </search-predicate>
 }
 
 /**
@@ -53,17 +60,21 @@ class ExactMatchPredicate(uri:String, weight:Float)
  * ?key <http://.../search-predicate-uri ?containsText
  * ?containsText <contains-uri> "search-term"
  */
-class ContainsPredicate(uri:String, weight:Float, containsUri:String)
+class ContainsPredicate(uri:URI, weight:Float, containsUri:URI)
             extends SearchPredicate(uri, weight) {
 
   override def toSPARQL(searchTerm : String) = {
-    "?" + key + " " + uri + " ?containsText ." +
-    "?containsText " + containsUri + " \"" + searchTerm + "\" .  "
+    "?" + key + " " + uri.sparql + " ?containsText ." +
+    "?containsText " + containsUri.sparql + " \"" + searchTerm + "\" .  "
   }
 
   override def toXML = 
-    <search-predicate uri={uri} weight={weight.toString} 
-      match="contains" contain-uri={containsUri}/>
+    <search-predicate>
+      <uri>{uri.xml}</uri>
+      <weight>{weight.toString}</weight>
+      <method>contains</method>
+      <contains-uri>{containsUri.xml}</contains-uri>
+    </search-predicate>
 }
 
 object SearchPredicate {

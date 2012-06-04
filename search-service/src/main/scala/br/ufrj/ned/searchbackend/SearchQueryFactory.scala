@@ -48,7 +48,7 @@ object SearchQueryFactory {
 
         /* type constraint */
         for(typeUri <- backend.types)
-          body += "?" + p.key + " a " + typeUri + " . "
+          body += "?" + p.key + " a " + typeUri.sparql + " . "
       
         body += " } "
         if(it.hasNext)

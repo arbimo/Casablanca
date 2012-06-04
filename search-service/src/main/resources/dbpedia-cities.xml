@@ -4,11 +4,12 @@
     <url>http://dbpedia.org/sparql</url>
   </end-point>
   <search>
-    <match>
-      <type>contains</type>
+    <search-predicate>
+      <uri>http://xmlns.com/foaf/0.1/name</uri>
+      <weight>25</weight>
+      <method>contains</method>
       <contains-uri>bif:contains</contains-uri>
-    </match>
-    <search-predicate uri="http://xmlns.com/foaf/0.1/name" weight="25"/>
+    </search-predicate>
   </search>
   <popularity>
     <measure>

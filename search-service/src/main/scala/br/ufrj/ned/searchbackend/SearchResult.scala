@@ -5,11 +5,14 @@ package br.ufrj.ned.searchbackend
   * 
   * The result is described with its URI and its score
   */
-case class SearchResult(val uri : String, 
+case class SearchResult(val uri : URI, 
                         val matchScore : Float, 
                         val popScore : Float
                         ) extends Ordered[SearchResult] {
 
+  def this(uri : String, matchScore : Float, popScore : Float) =
+    this(new URI(uri), matchScore, popScore)
+  
   def this(uri : String, matchScore : Float) =
     this(uri, matchScore, 1f)
   
@@ -17,8 +20,11 @@ case class SearchResult(val uri : String,
     this(old.uri, old.matchScore, popScore)
 
   def score = matchScore * popScore
+  
   override def compare(other : SearchResult) = - this.score.compare(other.score)
+  
   override def toString() = score+" - "+matchScore+" - "+popScore+" - "+uri
+  
   def toXML() =
     <search-result>
       <uri>{uri}</uri>
