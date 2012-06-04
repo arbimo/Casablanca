@@ -7,8 +7,7 @@
     <search-predicate>
       <uri>http://xmlns.com/foaf/0.1/name</uri>
       <weight>25</weight>
-      <method>contains</method>
-      <contains-uri>bif:contains</contains-uri>
+      <language>en</language>
     </search-predicate>
   </search>
   <popularity>

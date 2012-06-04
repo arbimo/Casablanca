@@ -36,11 +36,21 @@ abstract class SearchPredicate(val uri : URI, val weight : Float) extends Loggin
  * 
  * ?key <http://.../search-predicate-uri "search-term"
  */
-class ExactMatchPredicate(uri:URI, weight:Float) 
+class ExactMatchPredicate(uri:URI, weight:Float, language:Option[String]) 
             extends SearchPredicate(uri, weight) {
 
+  def this(uri:URI, weight:Float) = this(uri, weight, None)
+
+  def this(uri:URI, weight:Float, language:String) = this(uri, weight, Some(language))
+
   override def toSPARQL(searchTerm : String) = {
-    "?" + key + " " + uri.sparql + " \"" + searchTerm + "\" .  "
+    val languageFilter = language match {
+      case None => ""
+      case Some(lg:String) => "@"+lg
+    }
+
+    "?" + key + " " + uri.sparql + " \"" + 
+    searchTerm + "\"" + languageFilter + " .  "
   }
 
   override def toXML = 
@@ -48,6 +58,9 @@ class ExactMatchPredicate(uri:URI, weight:Float)
       <uri>{uri.xml}</uri>
       <weight>{weight.toString}</weight>
       <method>exact</method>
+      {language match {
+        case None => None
+        case Some(lg:String) => <language>{lg}</language>}}
     </search-predicate>
 }
 

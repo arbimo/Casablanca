@@ -147,25 +147,27 @@ object SearchBackend extends Logging {
         val uri = new URI((predNode\"uri").text)
         val weight = (predNode\"weight").text.toFloat
 
-        val methodNode = predNode\"method"
+        val method = 
+          if((predNode\"method").isEmpty)
+            "exact"
+          else
+            (predNode\"method").text
 
         val pred =
-          if(methodNode.isEmpty) {
-            new ExactMatchPredicate(uri, weight)
-          } else {
-            methodNode(0).text match {
-              case "exact" =>
+          method match {
+            case "exact" =>
+              if((predNode\"language").isEmpty)
                 new ExactMatchPredicate(uri, weight)
-              case "contains" => 
-                val containsUri = new URI((predNode\"contains-uri").text)
-                new ContainsPredicate(uri, weight, containsUri)
-              case _ => 
-                throw new Exception("Unable to recognize the match method : " +
-                                    methodNode(0).text)
-            }
+              else
+                new ExactMatchPredicate(uri, weight, (predNode\"language").text)
+            case "contains" => 
+              val containsUri = new URI((predNode\"contains-uri").text)
+              new ContainsPredicate(uri, weight, containsUri)
+            case _ => 
+              throw new Exception("Unable to recognize the match method : " +method)
           }
         
-            
+        
         predicates += (pred.key -> pred)
       }
       
