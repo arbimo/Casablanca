@@ -81,6 +81,7 @@ As dependencies, it uses [Jena] to handle SPARQL queries and [Logula] as logging
 ## Configuration 
 
 Configuration comes as an XML file specifying :
+
  - the SPARQL end point to use
  - how candidates are selected
  - how candidates are ranked
@@ -96,11 +97,11 @@ Here is an example configuration file :
     <url>http://dbpedia.org/sparql</url>
   </end-point>
   <search>
-    <match>
-      <type>contains</type>
-      <contains-uri>bif:contains</contains-uri>
-    </match>
-    <search-predicate uri="http://xmlns.com/foaf/0.1/name" weight="25"/>
+    <search-predicate>
+      <uri>http://xmlns.com/foaf/0.1/name</uri>
+      <weight>25</weight>
+      <language>en</language>
+    </search-predicate>
   </search>
   <popularity>
     <measure>
@@ -131,23 +132,26 @@ Datasets usually come with a lot of predicates with string literal objects that 
 
 Therefore the approach here is to provide a set of predicate that are relevant for NED through the configuration.
 
-Each predicate to use should come as the `<uri/>` of a `<search-predicate/>` node as shown her :
+Each predicate to use should come as the `<uri/>` of a `<search-predicate/>` node as shown here :
 
 ```XML
   <search>
-    ...
-    <search-predicate 
-      uri="http://yago-knowledge.org/resource/hasPreferredName" 
-      weight="50"/>
-    <search-predicate 
-      uri="http://www.w3.org/2000/01/rdf-schema#label" 
-      weight="25"/>
-    <search-predicate 
-      uri="http://yago-knowledge.org/resource/hasFamilyName" 
-      weight="25"/>
-    <search-predicate 
-      uri="http://yago-knowledge.org/resource/hasGivenName" 
-      weight="5"/>
+    <search-predicate>
+      <uri>http://yago-knowledge.org/resource/hasPreferredName</uri>
+      <weight>50</weight>
+    </search-predicate>
+    <search-predicate>
+      <uri>http://www.w3.org/2000/01/rdf-schema#label</uri>
+      <weight>25</weight>
+    </search-predicate>
+    <search-predicate>
+      <uri>http://yago-knowledge.org/resource/hasFamilyName</uri>
+      <weight>25</weight>
+    </search-predicate>
+    <search-predicate>
+      <uri>http://yago-knowledge.org/resource/hasGivenName</uri>
+      <weight>5</weight>
+    </search-predicate>
   </search>
 ```
 
@@ -187,25 +191,25 @@ For the example `"Casablanca"` we can distinct four literals that might be consi
 An effective way to implement the two first exists and is already implemented as *exact match* and *contains match*.
 The last two ones could be implemented using regular expression but are not integrated yet.
 
-Right now only one search method has to be provided and will apply one every predicate.
-
-> **Idea** : Work might be done to make it predicate-specific
-
+A different search method can be provided for every *search predicate*. The configuration is done by specifying a search method for every predicate. If none is specified, it will default to an *exact match*.
 
 
 #### Exact match
 
 The exact match provides a way to look for a string that match exactly the search term.
 
-This configuration is activated by adding the following `<match/>` node to the *search* section :
+This configuration is activated by adding the following `<method>exact</method>` node to a *search-predicate* section :
 
 ```XML
 <search-backend>
   ...
   <search>
-    <match>
-      <type>exact</type>
-    </match>
+    <search-predicate>
+      <uri>http://xmlns.com/foaf/0.1/name</uri>
+      <weight>25</weight>
+      <method>exact</method>
+      <language>en</language>
+    </search-predicate>
     ...
   </search>
   ...
@@ -228,11 +232,21 @@ SELECT ?rdfslabel ?yagoname  WHERE {
 }
 ```
 
-> **Note** : an entity might appear several times in the same variable (DISTINCT is not used). This is useful for ranking (the more times a term appears, the more it is likely to be a match).
+##### Language tags
 
-> **Note** : no support for [language tags](http://www.w3.org/TR/rdf-sparql-query/#matchLangTags)
+Some datasets (such as DBPedia) use language tags in order to indicate to which language correspond a specific literal. 
+The *exact match* presented aboveapproach wouldn't give any result on tagged literals.
 
-> **TODO** : make it the default method
+Therefore, an optional [language tag](http://www.w3.org/TR/rdf-sparql-query/#matchLangTags) can be used to add a suffix to the search term. The configuration above would give the following request :
+
+```SPARQL
+?foafname foaf:name "search-term"@en
+```
+
+If no language is provided, no tag suffix is added to the request (matching only untagged literals !)
+
+
+
 
 #### Contains match
 
@@ -244,14 +258,18 @@ The configuration to provide in order to get a *contains match* search is the fo
 <search-backend>
   ...
   <search>
-    <match>
-      <type>contains</type>
+    <search-predicate>
+      <uri>http://www.w3.org/2000/01/rdf-schema#label</uri>
+      <weight>25</weight>
+      <method>contains</method>
       <contains-uri>bif:contains</contains-uri>
-    </match>
+    </search-predicate>
     ...
   </search>
 </search-backend>
 ```
+
+Note that both `<method/>` and `<contains-uri/>` are necessary to make it work. `<method/>` is simply a marker to specify which method to use. `<contains-uri/>` specifies which predicate to use for full text search.
 
 The SPARQL schema is the following :
 
@@ -271,6 +289,9 @@ SELECT ?rdfslabel ?yagoname  WHERE {
     ?text <bif:contains> "Casablanca" }
 }
 ```
+
+
+> **Note** : an entity might appear several times in the same variable (DISTINCT is not used). This is useful for ranking (the more times a term appears, the more it is likely to be a match).
 
 > **Note** : Performance might increase by moving `?text <bif:contains> "Casablanca"` to the root of the search.
 
