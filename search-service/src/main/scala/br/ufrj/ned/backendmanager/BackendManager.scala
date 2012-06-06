@@ -6,40 +6,17 @@ import scala.collection.JavaConversions._
 import scala.actors.Actor
 import scala.collection.mutable.ArrayBuffer
 import br.ufrj.ned.searchbackend._
+import br.ufrj.ned.backendmanager.messages._
+import br.ufrj.ned.backendmanager.exceptions._
 
 /**
- * This message is used to retrieve the default SearchBackend
+ * This backend manager provides a thread safe way to manage backends.
  * 
- * Usage : val reply = BackendManager !? new RetrieveDefault
- */
-case object RetrieveDefault
-
-/**
- * This message is used to retrieve the SearchBackend with index id.
+ * It comes with public methods to retrieve, add or list backends that you're 
+ * expected to use.
  * 
- * Usage : val reply = BackendManager !? new RetrieveBackend(3)
- */
-case class RetrieveBackend(id : Int) 
-
-/**
- * This message is used to set the default backend backend to use.
- */
-case class SetDefault(id : Int)
-
-/**
- * This message is used to load every XML file of a directory in the 
- * availables backends
- */
-case class LoadFromDir(dir : String)
-
-/**
- * This message is used to retrieve an immutable list of available SearchBackends
- */
-case object GetList
-
-/**
- * This backend manager provides a way to manage backends in a
- * thread safe way.
+ * It is implemented by using an actor reacting to messages presents in the 
+ * messages package.
  */
 object BackendManager extends Actor with Logging {
 
@@ -60,12 +37,75 @@ object BackendManager extends Actor with Logging {
   private var defaultBackend = 0
 
   /**
-   * This message is used to load every XML file of a directory in the 
+   * This method is used to load every XML file of a directory in the 
    * availables backends
    * 
    * @param dir The directory to search
    */
-  private def loadFromDir(dir : File) {
+  def loadFromDir(dir : String) {
+    BackendManager ! LoadFromDir(dir)
+  }
+
+  /**
+   * This method is used to retrieve the default profile.
+   */
+  def retrieveDefault : SearchBackend =
+    BackendManager !? RetrieveDefault match {
+      case Some(sb:SearchBackend) => sb
+      case _ => throw new ProfileNotFoundException
+    }
+
+  /** 
+   * This method is used to retrieve the profile by furnishing its id.
+   * 
+   * @param id The index of the profile. (position in internal list)
+   */
+  def retrieveBackend(id : Int) : SearchBackend =
+    BackendManager !? RetrieveBackend(id) match {
+      case Some(sb:SearchBackend) => sb
+      case _ => throw new ProfileNotFoundException
+    }
+
+  /**
+   * This method is used to set a backend as a default by furnishing its id
+   * 
+   * @param id The index of the profile. (position in internal list)
+   */
+  def setDefault(id:Int) {
+    BackendManager !? SetDefault(id) match {
+      case Some(id:Int) => 
+      case _ => throw new ProfileNotFoundException
+    }
+  }
+
+  /**
+   * This method returns an immutable list of the available profiles.
+   * 
+   * The position of the profiles in the list match with their id.
+   */
+  def getList : List[SearchBackend] =
+    BackendManager !? GetList match {
+      case list : List[_] => list.map(_.asInstanceOf[SearchBackend])
+      case _ => Nil
+    }
+
+  /**
+   * Halt the backend manager.
+   * 
+   * Calling this method make it quit the act() method. Therefore it won't reply
+   * to any message or public method call
+   */
+  def stop {
+    BackendManager ! 'quit
+  }
+
+  /**
+   * This method is used to load every XML file of a directory in the 
+   * availables backends
+   * 
+   * @param dir The directory to search
+   */
+  private def privLoadFromDir(dir : File) {
     try {
       if(!dir.isDirectory) 
         throw new Exception("Parameter is not a directory" + dir)
@@ -89,15 +129,15 @@ object BackendManager extends Actor with Logging {
     }
   }
 
-  //TODO : make it thread safe
   override def toString() : String = {
+    val list = BackendManager.getList
     var listStr = ""
-    for(i <- 0 to backends.length-1) {
+    for(i <- 0 to list.length-1) {
       if(i==defaultBackend)
         listStr += "-> "
       else
         listStr += "   "
-      listStr += i + " - " + backends(i).name +"\n"
+      listStr += i + " - " + list(i).name +"\n"
     }
     listStr
   }
@@ -107,23 +147,26 @@ object BackendManager extends Actor with Logging {
       react {
         case RetrieveBackend(id) => 
           if(id>=0 && id < backends.length)
-            reply(backends(id))
+            reply(Some(backends(id)))
           else
             reply(None)
           
         case RetrieveDefault =>
           if(defaultBackend < backends.length)
-            reply(backends(defaultBackend))
+            reply(Some(backends(defaultBackend)))
           else
             reply(None)
 
         case SetDefault(id) =>
-          if(id>=0 && id < backends.length)
+          if(id>=0 && id < backends.length) {
             defaultBackend = id
-          else
+            reply(Some(id))
+          } else {
             log.warn("Request backend is not in availables one. Id : %d", id)
+            reply(None)
+          }
 
-        case LoadFromDir(dir) => loadFromDir(new File(dir))
+        case LoadFromDir(dir) => privLoadFromDir(new File(dir))
 
         case GetList => reply(backends.toList)
           

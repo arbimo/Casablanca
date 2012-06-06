@@ -12,7 +12,8 @@ class Profiles {
   @GET
   @Produces(Array("text/xml"))
   def getProfiles() = {
-    val profiles = BackendManager !? GetList match {case list:List[SearchBackend] => list}
+    val profiles = BackendManager.getList
+
     <profiles>
       {for(i <- 0 to profiles.length-1) yield 
         <profile>

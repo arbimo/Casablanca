@@ -1,9 +1,9 @@
 package br.ufrj.ned;
 
 
-import com.hp.hpl.jena.query._
 import br.ufrj.ned.searchbackend._
 import br.ufrj.ned.backendmanager._
+import br.ufrj.ned.backendmanager.exceptions._
 
 import com.codahale.logula.Logging
 import org.apache.log4j.Level
@@ -44,16 +44,16 @@ object Main extends App with Logging {
     initLogging
     log.info("Running UFRJ-NED")
 
-    try {
-      var exit = false
-      println(helpString)
+    var exit = false
+    println(helpString)
 
-      /* Starting Backend manager */
-      BackendManager.start()
-      if(System.getenv("UFRJ_NED_CONF") != null)
-        BackendManager ! new LoadFromDir(System.getenv("UFRJ_NED_CONF"))
+    /* Starting Backend manager */
+    BackendManager.start()
+    if(System.getenv("UFRJ_NED_CONF") != null)
+      BackendManager.loadFromDir(System.getenv("UFRJ_NED_CONF"))
     
-      while(!exit) {
+    while(!exit) {
+      try {
         print("> ")
         val cmd = readLine
 
@@ -65,34 +65,32 @@ object Main extends App with Logging {
           println(BackendManager)
         } else if(cmd.startsWith("load ")) {
           val id = cmd.drop(("load ").length).toInt
-          BackendManager ! new SetDefault(id)
+          BackendManager.setDefault(id)
           println("Loading backend " + id)
           
         } else if(cmd.startsWith("search ")) {
           val searchTerm = cmd.drop(("search ").length)
 
-          val backendOption = BackendManager !? RetrieveDefault
-          val sb = backendOption match {case sb:SearchBackend => sb }
+          val sb = BackendManager.retrieveDefault
           println("Looking for \""+searchTerm+"\" on "+sb.name)
           
           val results = sb.search(searchTerm)
           results.reverse.foreach(result => println(result))
         } else if(cmd.startsWith("request ")) {
           val searchTerm = cmd.drop(("request ").length)
-          val backendOption = BackendManager !? RetrieveDefault
-          val sb = backendOption match {case sb:SearchBackend => sb }
+          val sb = BackendManager.retrieveDefault
           println(SearchQueryFactory.create(searchTerm, sb))
         } else {
           println("This was not a valid command")
           println(helpString)
         }
+      } catch {
+        case e:ProfileNotFoundException => println("Unable to find profile")
+        case e:Exception => 
+          println("Exception was raised during execution. Please check you command")
+          println(e.toString)
       }
-    } catch {
-      case e: IllegalArgumentException =>
-        println(e)
-        log.error("Arguments are not valid (%s)", args.mkString(" "))
-    } finally {
-      BackendManager ! 'quit
     }
+    BackendManager.stop
   }
 }
