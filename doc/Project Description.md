@@ -8,10 +8,28 @@ This project is part of a Scientific Initiation conducted at the Universidade Fe
 
 It aims to provide tools to make Named Entities Disambiguation (NED) easier.
 
+This project doesn't focus on enhancing a dataset to make increase the precision of the disambiguation but rather focus on giving tools to make disambiguation easy on various raw datasets.
 
 # Conception overview
 
 
+## SPARQL End Point
+
+HTTP accessible data-storage. This storage is considered as read-only and accessible through a publicly available SPARQL End point. 
+
+Efforts are done to stay generic in order to be compatible with as much triple stores and datasets as possible.
+
+## Search backend
+
+An API and standalone application that performs the search. This should be completely independent from which dataset will be queried. It therefore requires a specification of the dataset and of how to perform a query on it. This specification comes in profiles.
+
+## Profiles
+
+XML configuration files that define every dataset-specific parameters.
+
+## Web Services
+
+Make the search backend functionalities available over the network.
 
 # Dataset
 
@@ -368,19 +386,21 @@ Distinction is done by attributing a weight to each *search predicate*. Whenever
 ```XML
   <search>
     ...
-    <search-predicate 
-      uri="http://yago-knowledge.org/resource/hasPreferredName" 
-      weight="50"/>
-    <search-predicate 
-      uri="http://www.w3.org/2000/01/rdf-schema#label" 
-      weight="25"/>
+    <search-predicate>
+      <uri>http://yago-knowledge.org/resource/hasPreferredName</uri>
+      <weight>50</weight>
+    </search-predicate>
+    <search-predicate>
+      <uri>http://www.w3.org/2000/01/rdf-schema#label</uri>
+      <weight>25</weight>
+    </search-predicate>
   </search>
 ```
 
 This way when doing a search for `"Paris"` :
 
  - an entity `e1` with `e1 yago:hasPreferredName "Paris"` and `e1 rdfs:label "Paris"` would have a score of 75
- -  an entity `e2` with `e2 rdfs:label "Paris"` would have a score of 25
+ - an entity `e2` with `e2 rdfs:label "Paris"` would have a score of 25
 
 > **Note** : right now the weight is added multiple times if there is multiple matches for a same predicate.
 
@@ -437,12 +457,45 @@ What is needed for the (future) global score :
 
 # Web Services
 
-The Web Service is right now mostly a proof of concept that replies an XML file to a search term.
+
+
+Provides a web interface to the backend
 
 It uses JAX-RS (with the [Jersey] implementation) on top of [Jetty].
 
-More details when more work achieved =)
 
+It currently provides the following services :
+
+- List profiles 
+- Show a profile's details 
+- Search on the default profile
+- Search on a specific profile
+
+
+The web service consumes GET and provide XML. Support for POST and JSON should come soon.
+
+> **TODO :** Support for adding custom profiles and type constraints
+
+
+
+## Profiles
+
+![Profile list]
+
+![Details of profile 2]
+
+## Search
+
+![Search for Paris on default profile]
+
+![Search for Paris on profile 2]
+
+
+
+[Profile list]: img/profiles.png
+[Details of profile 2]: img/profile2.png
+[Search for Paris on default profile]: img/search-paris.png
+[Search for Paris on profile 2]: img/search-paris-2.png
 
 # References
 
