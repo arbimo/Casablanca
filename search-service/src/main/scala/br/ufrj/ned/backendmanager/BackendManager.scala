@@ -7,7 +7,7 @@ import scala.actors.Actor
 import scala.collection.mutable.ArrayBuffer
 import br.ufrj.ned.searchbackend._
 import br.ufrj.ned.backendmanager.messages._
-import br.ufrj.ned.backendmanager.exceptions._
+import br.ufrj.ned.exceptions._
 
 /**
  * This backend manager provides a thread safe way to manage backends.

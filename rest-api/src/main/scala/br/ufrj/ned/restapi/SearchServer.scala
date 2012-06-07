@@ -45,15 +45,15 @@ object SearchServer {
         if(System.getenv("UFRJ_NED_CONF") != null)
           BackendManager.loadFromDir(System.getenv("UFRJ_NED_CONF"))
 
-        val httpServer = startServer();
+        val httpServer = startServer()
 
-        println("Server running");
-        println("Hit return to stop...");
-        System.in.read();
-        println("Stopping server");
-        httpServer.stop();
-        BackendManager ! 'quit
-        println("Server stopped");
+        println("Server running")
+        println("Hit return to stop...")
+        System.in.read()
+        println("Stopping server")
+        httpServer.stop()
+        BackendManager.stop
+        println("Server stopped")
         System.exit(0);
     }
 }

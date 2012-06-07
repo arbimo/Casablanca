@@ -1,4 +1,4 @@
-package br.ufrj.ned.backendmanager.exceptions
+package br.ufrj.ned.exceptions
 
 class ProfileNotFoundException extends Exception {
 

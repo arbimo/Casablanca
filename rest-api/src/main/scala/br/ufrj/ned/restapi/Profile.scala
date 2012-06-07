@@ -3,26 +3,21 @@ package br.ufrj.ned.restapi
 import javax.ws.rs._
 import br.ufrj.ned.searchbackend._
 import br.ufrj.ned.backendmanager._
-import br.ufrj.ned.backendmanager.exceptions._
-import javax.ws.rs.core.Response
-import javax.ws.rs.core.Response.Status._
+import br.ufrj.ned.exceptions._
 
-@Path("/profiles/{id}")
+@Path("/profiles/{profileId}")
 class Profile {
 
   
   @GET
   @Produces(Array("text/xml"))
-  def getProfile(@PathParam("id") id:Int) = {
+  def getProfile(@PathParam("profileId") profileId:Int) = {
 
     try {
-      BackendManager.retrieveBackend(id).toXML.toString
+      BackendManager.retrieveBackend(profileId).toXML.toString
     } catch {
-      case e:ProfileNotFoundException => throw new WebApplicationException(
-        Response
-          .status(Response.Status.BAD_REQUEST)
-          .entity("Id is not valid : "+id)
-          .build())
+      case e:ProfileNotFoundException => 
+        throw new ProfileNotFoundWebException(profileId)
     }
 
   }

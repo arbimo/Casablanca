@@ -59,8 +59,9 @@ class ExactMatchPredicate(uri:URI, weight:Float, language:Option[String])
       <weight>{weight.toString}</weight>
       <method>exact</method>
       {language match {
-        case None => None
-        case Some(lg:String) => <language>{lg}</language>}}
+        case Some(lg:String) => <language>{lg}</language>
+        case None => 
+      }}
     </search-predicate>
 }
 

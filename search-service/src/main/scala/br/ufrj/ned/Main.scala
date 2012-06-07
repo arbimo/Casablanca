@@ -3,7 +3,7 @@ package br.ufrj.ned;
 
 import br.ufrj.ned.searchbackend._
 import br.ufrj.ned.backendmanager._
-import br.ufrj.ned.backendmanager.exceptions._
+import br.ufrj.ned.exceptions._
 
 import com.codahale.logula.Logging
 import org.apache.log4j.Level

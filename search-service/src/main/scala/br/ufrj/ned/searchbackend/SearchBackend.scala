@@ -1,6 +1,5 @@
 package br.ufrj.ned.searchbackend
 
-/* Allow using for on java iterators */
 import scala.collection.JavaConversions._
 
 import com.codahale.logula.Logging
@@ -8,6 +7,8 @@ import com.hp.hpl.jena.query._
 import collection.mutable.ArrayBuffer
 import collection.immutable.HashMap
 import scala.collection.immutable.ListSet
+import br.ufrj.ned.exceptions._
+import com.hp.hpl.jena.sparql.engine.http.QueryExceptionHTTP
 
 
 /** This class aims at storing information about a search backend
@@ -23,18 +24,23 @@ class SearchBackend(val name : String,
                      ) extends Logging {
 
   def search(searchTerm : String) : Seq[SearchResult] = {
-    log.info("Searching for \"%s\" on <%s>", searchTerm, queryUrl)
-    
-    val query = SearchQueryFactory.create(searchTerm, this)
-    
-    log.info("Remote query execution start")
-    val rawResults = QueryExecutionFactory.sparqlService(queryUrl, query).execSelect()
-    log.info("Remote query execution end")
-
-    val weightedResults = treatResults(rawResults)
-    val results = retrievePopularityScore(weightedResults)
-
-    return util.Sorting.stableSort(results)
+    try {
+      log.info("Searching for \"%s\" on <%s>", searchTerm, queryUrl)
+      
+      val query = SearchQueryFactory.create(searchTerm, this)
+      
+      log.info("Remote query execution start")
+      val rawResults = QueryExecutionFactory.sparqlService(queryUrl, query).execSelect()
+      log.info("Remote query execution end")
+      
+      val weightedResults = treatResults(rawResults)
+      val results = retrievePopularityScore(weightedResults)
+      
+      util.Sorting.stableSort(results)
+    } catch {
+      case e:QueryExceptionHTTP =>
+        throw new RemoteEndPointException(e.toString)
+    }
   }
 
   /**
