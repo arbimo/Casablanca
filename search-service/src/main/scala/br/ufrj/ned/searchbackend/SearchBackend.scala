@@ -16,7 +16,7 @@ import com.hp.hpl.jena.sparql.engine.http.QueryExceptionHTTP
   * 
   * It provides ways to create queries against this backend
   */
-class SearchBackend(val name : String,
+class SearchProfile(val name : String,
                     val queryUrl : String,
                     val predicates : HashMap[String, SearchPredicate],
                     val popularity : Option[PopularityMethod],
@@ -120,28 +120,28 @@ class SearchBackend(val name : String,
   
 }
 
-/**Companion object for SearchBackend defining a constructor to
+/**Companion object for SearchProfile defining a constructor to
  * parse an XML config file.
  *
- * Usage : `val sb = SearchBackend(scala.xml.XML.loadFile(configFile))`
+ * Usage : `val sb = SearchProfile(scala.xml.XML.loadFile(configFile))`
  */
-object SearchBackend extends Logging {
+object SearchProfile extends Logging {
   
   /**
-   * Constructor for SearchBackend
+   * Constructor for SearchProfile
    *
    * @param configFile a file path containing the XML configuration
-   * @return a SearchBackend built from the configuration
+   * @return a SearchProfile built from the configuration
    */
-  def apply(configFile : String) : Option[SearchBackend] =
-    SearchBackend(scala.xml.XML.loadFile(configFile))
+  def apply(configFile : String) : Option[SearchProfile] =
+    SearchProfile(scala.xml.XML.loadFile(configFile))
 
-  /**Constructor for SearchBackend
+  /**Constructor for SearchProfile
    *
    * @param config an xml node containing the configuration
-   * @return a SearchBackend built from the configuration
+   * @return a SearchProfile built from the configuration
    */
-  def apply(config : scala.xml.Node) : Option[SearchBackend] = {
+  def apply(config : scala.xml.Node) : Option[SearchProfile] = {
     try {
       val name = (config\"name").text
       val queryUrl = (config\"end-point"\"url").text
@@ -194,7 +194,7 @@ object SearchBackend extends Logging {
       for(typeUri <- typeConstraints)
         constraints += new URI(typeUri.text)
       
-      Some(new SearchBackend(name,
+      Some(new SearchProfile(name,
                              queryUrl,
                              predicates,
                              popMethod,

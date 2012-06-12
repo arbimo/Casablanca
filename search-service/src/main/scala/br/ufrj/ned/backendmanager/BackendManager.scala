@@ -26,7 +26,7 @@ object BackendManager extends Actor with Logging {
    * No backend should be remove from this list to make sure a request
    * by index will always give the same backend.
    */
-  private val backends = new ArrayBuffer[SearchBackend](0)
+  private val backends = new ArrayBuffer[SearchProfile](0)
 
   /**
    * Index of the default backend to use.
@@ -49,9 +49,9 @@ object BackendManager extends Actor with Logging {
   /**
    * This method is used to retrieve the default profile.
    */
-  def retrieveDefault : SearchBackend =
+  def retrieveDefault : SearchProfile =
     BackendManager !? RetrieveDefault match {
-      case Some(sb:SearchBackend) => sb
+      case Some(sb:SearchProfile) => sb
       case _ => throw new ProfileNotFoundException
     }
 
@@ -60,9 +60,9 @@ object BackendManager extends Actor with Logging {
    * 
    * @param id The index of the profile. (position in internal list)
    */
-  def retrieveBackend(id : Int) : SearchBackend =
+  def retrieveBackend(id : Int) : SearchProfile =
     BackendManager !? RetrieveBackend(id) match {
-      case Some(sb:SearchBackend) => sb
+      case Some(sb:SearchProfile) => sb
       case _ => throw new ProfileNotFoundException
     }
 
@@ -83,9 +83,9 @@ object BackendManager extends Actor with Logging {
    * 
    * The position of the profiles in the list match with their id.
    */
-  def getList : List[SearchBackend] =
+  def getList : List[SearchProfile] =
     BackendManager !? GetList match {
-      case list : List[_] => list.map(_.asInstanceOf[SearchBackend])
+      case list : List[_] => list.map(_.asInstanceOf[SearchProfile])
       case _ => Nil
     }
 
@@ -114,7 +114,7 @@ object BackendManager extends Actor with Logging {
       for(file <- fileList ; if file.endsWith(".xml")) {
         log.info("Adding %s to backends", file)
         
-        SearchBackend(file) match { 
+        SearchProfile(file) match { 
           case Some(sb) => {
               backends.append(sb)
               if(file.endsWith("default.xml"))

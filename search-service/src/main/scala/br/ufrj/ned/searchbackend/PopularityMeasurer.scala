@@ -12,7 +12,7 @@ import com.hp.hpl.jena.query.QueryFactory
  * 
  * Every URI used here should be passed in a SPARQL usable format 
  * (i.e. <http://.../entity>)
- * Use SearchBackend.normalizeURI for that.
+ * Use SearchProfile.normalizeURI for that.
  */
 class PopularityMeasurer(endPoint : String, method : PopularityMethod) extends Logging {
 

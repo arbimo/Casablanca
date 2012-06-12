@@ -25,10 +25,10 @@ object SearchQueryFactory {
     /**  This function creates a Jena ARQ Query from :
      *
      * @param searchTerm string to look for
-     * @param backend a SearchBackend. This describes the dataset to use
+     * @param backend a SearchProfile. This describes the dataset to use
      * @return a Jena ARQ Query
      */
-    def create(searchTerm : String, backend : SearchBackend) : Query = {
+    def create(searchTerm : String, backend : SearchProfile) : Query = {
 
       var structBegin = "SELECT "
       for(p <- backend.predicates.values)
