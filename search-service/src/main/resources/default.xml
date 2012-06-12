@@ -1,4 +1,4 @@
-<search-backend>
+<profile>
   <name>Local Fuseki End Point for Yago2</name>
   <end-point>
     <url>http://localhost:3030/Yago/query</url>
@@ -26,4 +26,4 @@
       <predicate>http://yago-knowledge.org/resource/hasNumberOfWikipediaLinks</predicate>
     </measure>
   </popularity>
-</search-backend>
+</profile>

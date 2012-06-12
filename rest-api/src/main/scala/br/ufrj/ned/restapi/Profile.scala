@@ -7,7 +7,6 @@ import br.ufrj.ned.exceptions._
 
 @Path("/profiles/{profileId}")
 class Profile {
-
   
   @GET
   @Produces(Array("text/xml"))
@@ -19,8 +18,6 @@ class Profile {
       case e:ProfileNotFoundException => 
         throw new ProfileNotFoundWebException(profileId)
     }
-
   }
-  
 
 }

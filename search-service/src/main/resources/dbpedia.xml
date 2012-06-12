@@ -1,4 +1,4 @@
-<search-backend>
+<profile>
   <name>DBPedia</name>
   <end-point>
     <url>http://dbpedia.org/sparql</url>
@@ -11,4 +11,4 @@
       <contains-uri>bif:contains</contains-uri>
     </search-predicate>
   </search>
-</search-backend>
+</profile>

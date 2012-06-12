@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+   
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    
+    <xs:simpleType name="nameType">
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+    
+    <xs:simpleType name="uriType">
+        <xs:restriction base="xs:anyURI"/>
+    </xs:simpleType>
+    
+    <xs:simpleType name="methodType">
+            <xs:restriction base="xs:string">
+                <xs:enumeration value="exact"/>
+                <xs:enumeration value="contains"/>
+            </xs:restriction>
+        </xs:simpleType>
+    
+    <xs:complexType name="endPointType">
+        <xs:sequence>
+            <xs:element name="url" type="uriType"/>
+        </xs:sequence>
+    </xs:complexType>
+    
+    <xs:complexType name="searchPredicateType">
+        <xs:sequence>
+            <xs:element name="uri" type="uriType"/>
+            <xs:element name="weight" type="xs:decimal"/>
+            <xs:element name="language" type="xs:string" minOccurs="0"/>
+            <xs:element name="method" type="methodType" minOccurs="0"/>
+            <xs:element name="contains-uri" type="uriType" minOccurs="0"/>
+        </xs:sequence>
+    </xs:complexType>
+    
+    <xs:complexType name="searchType">
+        <xs:sequence>
+            <xs:element name="search-predicate" type="searchPredicateType" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+    
+    <xs:complexType name="popularityMeasureType">
+        <xs:sequence>
+            <xs:element name="predicate" type="uriType"/>
+        </xs:sequence>
+    </xs:complexType>
+    
+    <xs:complexType name="popularityType">
+        <xs:sequence>
+            <xs:element name="measure" type="popularityMeasureType" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+    
+    <xs:complexType name="typeConstraintType">
+        <xs:sequence>
+            <xs:element name="type" type="uriType" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+    
+    
+    <xs:complexType name="profileType">
+        <xs:sequence>
+            <xs:element name="name" type="nameType"/>
+            <xs:element name="end-point" type="endPointType"/>
+            <xs:element name="search" type="searchType"/>
+            <xs:element name="popularity" type="popularityType" minOccurs="0"/>
+            <xs:element name="type-constraint" type="typeConstraintType" minOccurs="0"/>
+        </xs:sequence>
+    </xs:complexType>
+    
+    <xs:element name="profile" type="profileType"/>
+</xs:schema>

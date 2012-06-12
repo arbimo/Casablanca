@@ -1,4 +1,4 @@
-<search-backend>
+<profile>
   <name>A DBPedia search backend for populated places</name>
   <end-point>
     <url>http://dbpedia.org/sparql</url>
@@ -18,4 +18,4 @@
   <type-constraint>
     <type>http://dbpedia.org/ontology/PopulatedPlace</type>
   </type-constraint>
-</search-backend>
+</profile>
