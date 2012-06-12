@@ -10,10 +10,7 @@ case class SearchResult(val uri : URI,
                         val popScore : Float
                         ) extends Ordered[SearchResult] {
 
-  def this(uri : String, matchScore : Float, popScore : Float) =
-    this(new URI(uri), matchScore, popScore)
-  
-  def this(uri : String, matchScore : Float) =
+  def this(uri : URI, matchScore : Float) =
     this(uri, matchScore, 1f)
   
   def this(old : SearchResult, popScore : Float) =

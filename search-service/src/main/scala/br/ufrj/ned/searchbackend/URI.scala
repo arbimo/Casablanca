@@ -10,6 +10,10 @@ import com.codahale.logula.Logging
  */
 class URI(rawURI : String) extends Logging {
 
+  require(URI.isValid(rawURI), {log.error("URI \"%s\" is not valid", rawURI)})
+
+  val sparql = normalizeUri(rawURI)
+
   /** 
    * Normalize a URI for use in SPARQL.
    * 
@@ -17,24 +21,12 @@ class URI(rawURI : String) extends Logging {
    * @return <uriText> if the URI doesn't use a prefix, uriText otherwise
    */
   def normalizeUri(uriText : String) : String = {
-    def clean(uri:String) = 
-      if(uri.contains("\"")) {
-        log.warn("This URI contains double quotes : "+uri)
-        uri.replaceAll("\"", "")
-      } else
-        uri
-
     if(uriText.startsWith("http://") || uriText.startsWith("bif:"))
-      "<"+clean(uriText)+">"
+      "<"+uriText+">"
     else
-      clean(uriText)
+      uriText
   }
   
-  /**
-   * A version of the URI that is compatible for SPARQL queries.
-   */
-  def sparql = normalizeUri(rawURI) 
-
   /**
    * A version of the URI that can be inserted in a valid XML document.
    */
@@ -46,4 +38,18 @@ class URI(rawURI : String) extends Logging {
   
   override def toString = this.xml
   
+}
+
+object URI {
+
+  /**
+   * Checks the validity of an URI. (Double quotes etc ...)
+   */
+  def isValid(uri : String) : Boolean = {
+    if(uri.contains("\"")) 
+      false
+    else
+      true
+    
+  }
 }

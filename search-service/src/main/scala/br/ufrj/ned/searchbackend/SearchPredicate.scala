@@ -1,6 +1,7 @@
 package br.ufrj.ned.searchbackend
 
 import com.codahale.logula.Logging
+import scala.collection.immutable.HashMap
 
 /** 
  * This class stores the uri of a predicate
@@ -92,5 +93,44 @@ class ContainsPredicate(uri:URI, weight:Float, containsUri:URI)
 }
 
 object SearchPredicate {
+  /**
+   * A list of char alloweds in SPARQL variable names.
+   */
   val allowedKeyChars = ('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9')
+
+  /**
+   * Takes a <search-predicate> node of a configuration and returns the
+   * corresponding SearchPredicate instance.
+   */
+  def apply(predNode : scala.xml.Node) : SearchPredicate = {
+    
+    /* Get the predicates to use */
+    var predicates = new HashMap[String, SearchPredicate]()
+    
+    val uri = new URI((predNode\"uri").text)
+    val weight = (predNode\"weight").text.toFloat
+    
+    val method = 
+      if((predNode\"method").isEmpty)
+        "exact"
+      else
+        (predNode\"method").text
+    
+    val pred =
+      method match {
+        case "exact" =>
+          if((predNode\"language").isEmpty)
+            new ExactMatchPredicate(uri, weight)
+          else
+            new ExactMatchPredicate(uri, weight, (predNode\"language").text)
+        case "contains" => 
+          val containsUri = new URI((predNode\"contains-uri").text)
+          new ContainsPredicate(uri, weight, containsUri)
+        case _ => 
+          throw new Exception("Unable to recognize the match method : " +method)
+      }
+    
+    
+    pred
+  }
 }

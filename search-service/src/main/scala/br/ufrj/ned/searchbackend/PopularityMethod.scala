@@ -14,3 +14,14 @@ case class PopularityMethod(val predicate : URI) {
   def toXML = <measure><predicate>{predicate}</predicate></measure>
 }
 
+object PopularityMethod {
+
+  /**
+   * Takes <measure> node and returns the corresponding PopularityMethod
+   * instance.
+   */
+  def apply(measureNode : scala.xml.Node) : PopularityMethod = {
+    val pred = (measureNode\"predicate").text
+    new PopularityMethod(new URI(pred))
+  }
+}
