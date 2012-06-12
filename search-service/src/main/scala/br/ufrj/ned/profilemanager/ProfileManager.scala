@@ -1,4 +1,4 @@
-package br.ufrj.ned.backendmanager
+package br.ufrj.ned.profilemanager
 
 import com.codahale.logula.Logging
 import java.io.File
@@ -6,51 +6,51 @@ import scala.collection.JavaConversions._
 import scala.actors.Actor
 import scala.collection.mutable.ArrayBuffer
 import br.ufrj.ned.searchbackend._
-import br.ufrj.ned.backendmanager.messages._
+import br.ufrj.ned.profilemanager.messages._
 import br.ufrj.ned.exceptions._
 
 /**
- * This backend manager provides a thread safe way to manage backends.
+ * This profile manager provides a thread safe way to manage profiles.
  * 
- * It comes with public methods to retrieve, add or list backends that you're 
+ * It comes with public methods to retrieve, add or list profiles that you're 
  * expected to use.
  * 
  * It is implemented by using an actor reacting to messages presents in the 
  * messages package.
  */
-object BackendManager extends Actor with Logging {
+object ProfileManager extends Actor with Logging {
 
   /**
-   * Stores every search backend available.
+   * Stores every search profile available.
    * 
-   * No backend should be remove from this list to make sure a request
-   * by index will always give the same backend.
+   * No profile should be remove from this list to make sure a request
+   * by index will always give the same profile.
    */
-  private val backends = new ArrayBuffer[SearchProfile](0)
+  private val profiles = new ArrayBuffer[SearchProfile](0)
 
   /**
-   * Index of the default backend to use.
+   * Index of the default profile to use.
    * 
    * Should point on last file called "default.xml" that was added.
-   * Should point on the first backend otherwise.
+   * Should point on the first profile otherwise.
    */
-  private var defaultBackend = 0
+  private var defaultProfile = 0
 
   /**
    * This method is used to load every XML file of a directory in the 
-   * availables backends
+   * availables profiles
    * 
    * @param dir The directory to search
    */
   def loadFromDir(dir : String) {
-    BackendManager ! LoadFromDir(dir)
+    ProfileManager ! LoadFromDir(dir)
   }
 
   /**
    * This method is used to retrieve the default profile.
    */
   def retrieveDefault : SearchProfile =
-    BackendManager !? RetrieveDefault match {
+    ProfileManager !? RetrieveDefault match {
       case Some(sb:SearchProfile) => sb
       case _ => throw new ProfileNotFoundException
     }
@@ -60,19 +60,19 @@ object BackendManager extends Actor with Logging {
    * 
    * @param id The index of the profile. (position in internal list)
    */
-  def retrieveBackend(id : Int) : SearchProfile =
-    BackendManager !? RetrieveBackend(id) match {
+  def retrieveProfile(id : Int) : SearchProfile =
+    ProfileManager !? RetrieveProfile(id) match {
       case Some(sb:SearchProfile) => sb
       case _ => throw new ProfileNotFoundException
     }
 
   /**
-   * This method is used to set a backend as a default by furnishing its id
+   * This method is used to set a profile as a default by furnishing its id
    * 
    * @param id The index of the profile. (position in internal list)
    */
   def setDefault(id:Int) {
-    BackendManager !? SetDefault(id) match {
+    ProfileManager !? SetDefault(id) match {
       case Some(id:Int) => 
       case _ => throw new ProfileNotFoundException
     }
@@ -84,24 +84,24 @@ object BackendManager extends Actor with Logging {
    * The position of the profiles in the list match with their id.
    */
   def getList : List[SearchProfile] =
-    BackendManager !? GetList match {
+    ProfileManager !? GetList match {
       case list : List[_] => list.map(_.asInstanceOf[SearchProfile])
       case _ => Nil
     }
 
   /**
-   * Halt the backend manager.
+   * Halt the profile manager.
    * 
    * Calling this method make it quit the act() method. Therefore it won't reply
    * to any message or public method call
    */
   def stop {
-    BackendManager ! 'quit
+    ProfileManager ! 'quit
   }
 
   /**
    * This method is used to load every XML file of a directory in the 
-   * availables backends
+   * availables profiles
    * 
    * @param dir The directory to search
    */
@@ -112,28 +112,28 @@ object BackendManager extends Actor with Logging {
 
       val fileList = dir.listFiles.map(_.getPath)
       for(file <- fileList ; if file.endsWith(".xml")) {
-        log.info("Adding %s to backends", file)
+        log.info("Adding %s to profiles", file)
         
         SearchProfile(file) match { 
           case Some(sb) => {
-              backends.append(sb)
+              profiles.append(sb)
               if(file.endsWith("default.xml"))
-                defaultBackend = backends.length - 1
+                defaultProfile = profiles.length - 1
           }
           case None => log.warn("Unable to load config file %s", file)
         }
       }
     } catch {
       case e => 
-        log.error("Can't load backends from directory : %s", e)
+        log.error("Can't load profiles from directory : %s", e)
     }
   }
 
   override def toString() : String = {
-    val list = BackendManager.getList
+    val list = ProfileManager.getList
     var listStr = ""
     for(i <- 0 to list.length-1) {
-      if(i==defaultBackend)
+      if(i==defaultProfile)
         listStr += "-> "
       else
         listStr += "   "
@@ -145,30 +145,30 @@ object BackendManager extends Actor with Logging {
   override def act() {
     loop {
       react {
-        case RetrieveBackend(id) => 
-          if(id>=0 && id < backends.length)
-            reply(Some(backends(id)))
+        case RetrieveProfile(id) => 
+          if(id>=0 && id < profiles.length)
+            reply(Some(profiles(id)))
           else
             reply(None)
           
         case RetrieveDefault =>
-          if(defaultBackend < backends.length)
-            reply(Some(backends(defaultBackend)))
+          if(defaultProfile < profiles.length)
+            reply(Some(profiles(defaultProfile)))
           else
             reply(None)
 
         case SetDefault(id) =>
-          if(id>=0 && id < backends.length) {
-            defaultBackend = id
+          if(id>=0 && id < profiles.length) {
+            defaultProfile = id
             reply(Some(id))
           } else {
-            log.warn("Request backend is not in availables one. Id : %d", id)
+            log.warn("Request profile is not in availables one. Id : %d", id)
             reply(None)
           }
 
         case LoadFromDir(dir) => privLoadFromDir(new File(dir))
 
-        case GetList => reply(backends.toList)
+        case GetList => reply(profiles.toList)
           
         case 'quit => exit()
 

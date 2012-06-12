@@ -2,7 +2,7 @@ package br.ufrj.ned;
 
 
 import br.ufrj.ned.searchbackend._
-import br.ufrj.ned.backendmanager._
+import br.ufrj.ned.profilemanager._
 import br.ufrj.ned.exceptions._
 
 import com.codahale.logula.Logging
@@ -48,9 +48,9 @@ object Main extends App with Logging {
     println(helpString)
 
     /* Starting Backend manager */
-    BackendManager.start()
+    ProfileManager.start()
     if(System.getenv("UFRJ_NED_CONF") != null)
-      BackendManager.loadFromDir(System.getenv("UFRJ_NED_CONF"))
+      ProfileManager.loadFromDir(System.getenv("UFRJ_NED_CONF"))
     
     while(!exit) {
       try {
@@ -62,23 +62,23 @@ object Main extends App with Logging {
         } else if(cmd == "help") {
           println(helpString)
         } else if(cmd == "list") {
-          println(BackendManager)
+          println(ProfileManager)
         } else if(cmd.startsWith("load ")) {
           val id = cmd.drop(("load ").length).toInt
-          BackendManager.setDefault(id)
+          ProfileManager.setDefault(id)
           println("Loading backend " + id)
           
         } else if(cmd.startsWith("search ")) {
           val searchTerm = cmd.drop(("search ").length)
 
-          val sb = BackendManager.retrieveDefault
+          val sb = ProfileManager.retrieveDefault
           println("Looking for \""+searchTerm+"\" on "+sb.name)
           
           val results = sb.search(searchTerm)
           results.reverse.foreach(result => println(result))
         } else if(cmd.startsWith("request ")) {
           val searchTerm = cmd.drop(("request ").length)
-          val sb = BackendManager.retrieveDefault
+          val sb = ProfileManager.retrieveDefault
           println(SearchQueryFactory.create(searchTerm, sb))
         } else {
           println("This was not a valid command")
@@ -91,6 +91,6 @@ object Main extends App with Logging {
           println(e.toString)
       }
     }
-    BackendManager.stop
+    ProfileManager.stop
   }
 }

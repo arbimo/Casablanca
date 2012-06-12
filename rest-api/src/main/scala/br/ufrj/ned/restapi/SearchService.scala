@@ -2,7 +2,7 @@ package br.ufrj.ned.restapi
 
 import javax.ws.rs._
 import br.ufrj.ned.searchbackend._
-import br.ufrj.ned.backendmanager._
+import br.ufrj.ned.profilemanager._
 import br.ufrj.ned.exceptions._
 
 @Path("/search/{searchTerm}")
@@ -14,9 +14,9 @@ class SearchWS {
     try {
       val sb = {
         if(profileId == -1)
-          BackendManager.retrieveDefault
+          ProfileManager.retrieveDefault
         else
-          BackendManager.retrieveBackend(profileId)
+          ProfileManager.retrieveProfile(profileId)
       }
       val resultSeq = sb.search(searchTerm)
       (<search term={searchTerm}>{resultSeq.map(res => res.toXML)}</search>).toString
