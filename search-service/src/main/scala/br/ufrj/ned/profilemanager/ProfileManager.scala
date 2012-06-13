@@ -113,7 +113,7 @@ object ProfileManager extends Actor with Logging {
       val fileList = dir.listFiles.map(_.getPath)
       for(file <- fileList ; if file.endsWith(".xml")) {
         log.info("Adding %s to profiles", file)
-        
+
         SearchProfile(file) match { 
           case Some(sb) => {
               profiles.append(sb)

@@ -5,6 +5,7 @@ import scala.collection.JavaConversions._
 import com.codahale.logula.Logging
 import com.hp.hpl.jena.query._
 import collection.mutable.ArrayBuffer
+import br.ufrj.ned.tools.XSDValidator
 import collection.immutable.HashMap
 import scala.collection.immutable.ListSet
 import br.ufrj.ned.exceptions._
@@ -101,7 +102,7 @@ class SearchProfile(val name : String,
   }
   
   lazy val toXML = {
-    <search-backend>
+    <profile>
       <name>{name}</name>
       <end-point>
         <url>{queryUrl}</url>
@@ -110,12 +111,12 @@ class SearchProfile(val name : String,
         {predicates.values.map(pred => pred.toXML)}
       </search>
       <popularity>
-        {popularity.toList.map(pop => pop.toXML)}
+        {popularity.map(pop => pop.toXML)}
       </popularity>
       <type-constraint>
         {types.map(typeUri => <type>{typeUri}</type>)}
       </type-constraint>
-    </search-backend>
+    </profile>
   }
   
   
@@ -144,6 +145,14 @@ object SearchProfile extends Logging {
    */
   def apply(config : scala.xml.Node) : Option[SearchProfile] = {
     try {
+
+      /** Checks wether the XML is valid according to the provided schema */
+      val schemaIn = this.getClass.getResourceAsStream("profile.xsd")
+      if(schemaIn == null)
+        log.error("Unable to find XML schema for profiles")
+      else if(!XSDValidator.validate(config.mkString, schemaIn))
+        throw new UnvalidProfileException("The XML profile doesn't match the XSD")
+
       val name = (config\"name").text
       val queryUrl = (config\"end-point"\"url").text
       
