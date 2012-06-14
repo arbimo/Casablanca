@@ -198,9 +198,9 @@ object ProfileManager extends Actor with Logging {
 
         case GetList => reply(profiles.toList)
 
-        case ClearAll => //profiles.clear
+        case ClearAll => profiles.clear
           
-        //case 'quit => exit()
+        case 'quit => exit()
 
         case msg => log.warn("Unrecognised message %s", msg)
       }
