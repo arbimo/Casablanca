@@ -20,6 +20,8 @@ import br.ufrj.ned.exceptions._
  */
 object ProfileManager extends Actor with Logging {
 
+  start()
+
   /**
    * Stores every search profile available.
    * 
@@ -44,6 +46,17 @@ object ProfileManager extends Actor with Logging {
    */
   def loadFromDir(dir : String) {
     ProfileManager ! LoadFromDir(dir)
+  }
+
+  /**
+   * Create a new profile corresponding to given XML configuration.
+   * Return the ID of the newly created Profile.
+   */
+  def addProfile(config : scala.xml.Node) : Int = {
+    ProfileManager !? AddProfileFromXML(config) match {
+      case Some(i:Int) if i>= 0 => i
+      case _ => throw new InvalidProfileException("Unable to load profile")
+    }
   }
 
   /**
@@ -88,6 +101,13 @@ object ProfileManager extends Actor with Logging {
       case list : List[_] => list.map(_.asInstanceOf[SearchProfile])
       case _ => Nil
     }
+
+  /**
+   * Remove all existing profiles.
+   */
+  def clearAll {
+    ProfileManager ! ClearAll
+  }
 
   /**
    * Halt the profile manager.
@@ -168,9 +188,19 @@ object ProfileManager extends Actor with Logging {
 
         case LoadFromDir(dir) => privLoadFromDir(new File(dir))
 
+        case AddProfileFromXML(config) =>
+          SearchProfile(config) match {
+            case Some(profile) => 
+              profiles.add(profile)
+              reply(Some(profiles.length-1))
+            case None => reply(None)
+          }
+
         case GetList => reply(profiles.toList)
+
+        case ClearAll => //profiles.clear
           
-        case 'quit => exit()
+        //case 'quit => exit()
 
         case msg => log.warn("Unrecognised message %s", msg)
       }

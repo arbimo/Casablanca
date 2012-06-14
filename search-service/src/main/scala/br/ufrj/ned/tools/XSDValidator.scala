@@ -11,11 +11,11 @@ import org.xml.sax.SAXException
 
 object XSDValidator extends Logging {
 
-  def validate(xmlString: String, xsdFile: InputStream): Boolean = {
+  def validate(xmlString: String, xsd: InputStream): Boolean = {
     try {
       val schemaLang = "http://www.w3.org/2001/XMLSchema"
       val factory = SchemaFactory.newInstance(schemaLang)
-      val schema = factory.newSchema(new StreamSource(xsdFile))
+      val schema = factory.newSchema(new StreamSource(xsd))
       val validator = schema.newValidator()
       validator.validate(new SAXSource(new InputSource(new StringReader(xmlString))))
     } catch {

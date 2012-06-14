@@ -6,7 +6,7 @@ import br.ufrj.ned.profilemanager._
 import br.ufrj.ned.exceptions._
 
 @Path("/search/{searchTerm}")
-class SearchWS {
+class SearchService {
 
   @GET @Produces(Array("text/xml"))
   def doGet(@PathParam("searchTerm") searchTerm:String,

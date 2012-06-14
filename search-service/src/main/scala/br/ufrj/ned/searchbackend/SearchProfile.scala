@@ -151,7 +151,7 @@ object SearchProfile extends Logging {
       if(schemaIn == null)
         log.error("Unable to find XML schema for profiles")
       else if(!XSDValidator.validate(config.mkString, schemaIn))
-        throw new UnvalidProfileException("The XML profile doesn't match the XSD")
+        throw new InvalidProfileException("The XML profile doesn't match the XSD")
 
       val name = (config\"name").text
       val queryUrl = (config\"end-point"\"url").text

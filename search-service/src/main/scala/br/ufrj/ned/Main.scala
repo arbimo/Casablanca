@@ -47,8 +47,7 @@ object Main extends App with Logging {
     var exit = false
     println(helpString)
 
-    /* Starting Backend manager */
-    ProfileManager.start()
+    /* Initializing profile manager */
     if(System.getenv("UFRJ_NED_CONF") != null)
       ProfileManager.loadFromDir(System.getenv("UFRJ_NED_CONF"))
     
