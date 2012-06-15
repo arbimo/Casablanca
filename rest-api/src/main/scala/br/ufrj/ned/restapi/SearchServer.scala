@@ -46,14 +46,14 @@ object SearchServer extends Logging {
       defaultPort;
   }
   
-  private def getBaseURI() = {
-    UriBuilder.fromUri("http://localhost/").port(getPort(9998)).
-    path("ned").build();
+  private def getBaseURI = {
+    UriBuilder.fromUri("http://localhost/").port(getPort(9998))
+            .path("ned").build();
   }
   
   val BASE_URI = getBaseURI();
   
-  def startServer() = {
+  def startServer = {
     val rc = new PackagesResourceConfig("br.ufrj.ned.restapi");
     
     println("Starting grizzly...");

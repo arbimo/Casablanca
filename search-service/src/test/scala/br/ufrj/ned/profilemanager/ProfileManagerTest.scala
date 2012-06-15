@@ -1,6 +1,6 @@
 package br.ufrj.ned.profilemanager
 
-import br.ufrj.ned.profilemanager.ProfileUtils._
+import br.ufrj.ned.tools.TestProfileUtils._
 import br.ufrj.ned.exceptions._
 import org.scalatest.junit.AssertionsForJUnit
 import org.junit.Assert._
