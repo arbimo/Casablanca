@@ -19,10 +19,10 @@ Specific run instructions are provided in each module's README.
 
 For both sub-modules to work properly, the environment variable `UFRJ_NED_CONF` should point to a directory containing the different profiles.
 
-Some are provided in `search-service/src/main/resources`
+Some are provided in `search-service/src/main/resources/profiles`
 
 ```
-$ export UFRJ_NED_CONF={PROJECT-DIR}/search-service/src/main/resources
+$ export UFRJ_NED_CONF={PROJECT-DIR}/search-service/src/main/resources/profiles
 ```
 ## Further documentation
 
