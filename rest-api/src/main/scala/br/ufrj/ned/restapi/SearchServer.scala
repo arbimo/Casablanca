@@ -51,7 +51,7 @@ object SearchServer extends Logging {
             .path("ned").build();
   }
   
-  val BASE_URI = getBaseURI();
+  val BASE_URI = getBaseURI
   
   def startServer = {
     val rc = new PackagesResourceConfig("br.ufrj.ned.restapi");
@@ -67,7 +67,7 @@ object SearchServer extends Logging {
     if(System.getenv("UFRJ_NED_CONF") != null)
       ProfileManager.loadFromDir(System.getenv("UFRJ_NED_CONF"))
     
-    val httpServer = startServer()
+    val httpServer = startServer
     
     println("Server running")
     println("Hit return to stop...")
