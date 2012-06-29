@@ -41,6 +41,7 @@
     
     <xs:complexType name="popularityMeasureType">
         <xs:sequence>
+            <xs:element name="label" type="xs:string" minOccurs="0"/>
             <xs:element name="predicate" type="uriType"/>
         </xs:sequence>
     </xs:complexType>

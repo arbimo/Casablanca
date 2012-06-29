@@ -5,28 +5,21 @@ package br.ufrj.ned.searchbackend
   * 
   * The result is described with its URI and its score
   */
-case class SearchResult(val uri : URI, 
-                        val matchScore : Float, 
-                        val popScore : Float
+case class SearchResult(val uri : URI, val scores : List[Score]
                         ) extends Ordered[SearchResult] {
 
-  def this(uri : URI, matchScore : Float) =
-    this(uri, matchScore, 1f)
-  
-  def this(old : SearchResult, popScore : Float) =
-    this(old.uri, old.matchScore, popScore)
-
-  def score = matchScore * popScore
+  def addScore(score : Score) = new SearchResult(uri, score :: scores)
+  def score = scores.foldLeft(1f)({_ * _.normalizedValue})
   
   override def compare(other : SearchResult) = - this.score.compare(other.score)
   
-  override def toString() = score+" - "+matchScore+" - "+popScore+" - "+uri
+  override def toString() = score+"\t"+uri+"\t"+ 
+      (for(s<-scores) yield s.toString).foldLeft("")({_+" - "+_})
   
   def toXML() =
     <search-result>
       <uri>{uri}</uri>
-      <score>{score}</score>
-      <match-score>{matchScore}</match-score>
-      <popularity-score>{popScore}</popularity-score>
+      <global-score>{score}</global-score>
+      <scores>{for(s <- scores) yield s.toXML}</scores>
     </search-result>
 }

@@ -17,6 +17,10 @@ class ProfilesTest extends WebServiceTest {
     }
   }
 
+  /**
+   * Retrieves the XML of a load profile using the appopriae web service 
+   * (profiles/{id}).
+   */
   def checkProfileDescription(id:Int) {
     val webRes = getWebResource("profiles/"+id.toString)
     val result = webRes.get(classOf[String])

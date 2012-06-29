@@ -16,7 +16,8 @@ object TestProfileUtils {
    */
   val profiles = List("/profiles/dbpedia.xml", 
                       "/profiles/dbpedia-cities.xml",
-                      "/profiles/default.xml")
+                      "/profiles/local-yago.xml",
+                      "/profiles/local-yago-cities.xml")
 
   /**
    * Return an XML representation of the resource corresponding to 

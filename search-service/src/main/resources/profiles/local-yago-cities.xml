@@ -1,0 +1,34 @@
+<profile>
+  <name>Local Fuseki End Point for Yago2 for cities (population as score)</name>
+  <end-point>
+    <url>http://localhost:3030/Yago/query</url>
+  </end-point>
+  <search>
+    <search-predicate>
+      <uri>http://yago-knowledge.org/resource/hasPreferredName</uri>
+      <weight>50</weight>
+    </search-predicate>
+    <search-predicate>
+      <uri>http://www.w3.org/2000/01/rdf-schema#label</uri>
+      <weight>25</weight>
+    </search-predicate>
+    <search-predicate>
+      <uri>http://yago-knowledge.org/resource/hasFamilyName</uri>
+      <weight>25</weight>
+    </search-predicate>
+    <search-predicate>
+      <uri>http://yago-knowledge.org/resource/hasGivenName</uri>
+      <weight>5</weight>
+    </search-predicate>
+  </search>
+  <popularity>
+    <measure>
+      <label>Incoming links popularity</label>
+      <predicate>http://yago-knowledge.org/resource/hasNumberOfWikipediaLinks</predicate>
+    </measure>
+    <measure>
+      <label>Population popluarity</label>
+      <predicate>http://yago-knowledge.org/resource/hasPopulation</predicate>
+    </measure>
+  </popularity>
+</profile>

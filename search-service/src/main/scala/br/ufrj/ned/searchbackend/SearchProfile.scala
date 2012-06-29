@@ -59,7 +59,7 @@ class SearchProfile(val name : String,
         val popularities = popMeasurer.getPopularities(entities)
 
         results = for(i <- 0 to results.length-1) yield
-          new SearchResult(results(i), popularities(i))
+          results(i).addScore(new Score(popMethod.label, popularities(i)))
     }
     results
   }
@@ -83,8 +83,10 @@ class SearchProfile(val name : String,
     }
 
     var resultArray = new ArrayBuffer[SearchResult](scoredResults.size)
-    for(uri <- scoredResults.keysIterator ; if(URI.isValid(uri)))
-      resultArray += new SearchResult(new URI(uri), scoredResults(uri).toFloat)
+    for(uri <- scoredResults.keysIterator ; if(URI.isValid(uri))) {
+      val score = new Score("match", scoredResults(uri).toFloat)
+      resultArray += new SearchResult(new URI(uri), score::Nil)
+    }
 
     return resultArray
   }
