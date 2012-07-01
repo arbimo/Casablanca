@@ -4,12 +4,10 @@ import scala.collection.JavaConversions._
 
 import com.codahale.logula.Logging
 import com.hp.hpl.jena.query._
-import collection.mutable.ArrayBuffer
 import br.ufrj.ned.tools.XSDValidator
 import collection.immutable.HashMap
 import scala.collection.immutable.ListSet
 import br.ufrj.ned.exceptions._
-import com.hp.hpl.jena.sparql.engine.http.QueryExceptionHTTP
 
 
 /** This class aims at storing information about a search backend
@@ -20,77 +18,18 @@ import com.hp.hpl.jena.sparql.engine.http.QueryExceptionHTTP
 class SearchProfile(val name : String,
                     val queryUrl : String,
                     val predicates : HashMap[String, SearchPredicate],
-                    val popularity : Seq[PopularityMethod],
-                    val types : Set[URI]
+                    val popularities : Seq[PopularityMethod],
+                    val types : Set[URI],
+                    val backend : SearchBackend
                      ) extends Logging {
 
-  def search(searchTerm : String) : Seq[SearchResult] = {
-    try {
-      log.info("Searching for \"%s\" on <%s>", searchTerm, queryUrl)
-      
-      val query = SearchQueryFactory.create(searchTerm, this)
-      
-      log.info("Remote query execution start")
-      val rawResults = QueryExecutionFactory.sparqlService(queryUrl, query).execSelect()
-      log.info("Remote query execution end")
-      
-      val weightedResults = treatResults(rawResults)
-      val results = retrievePopularityScore(weightedResults)
-      
-      util.Sorting.stableSort(results)
-    } catch {
-      case e:QueryExceptionHTTP =>
-        throw new RemoteEndPointException(e.toString)
-    }
-  }
-
   /**
-   * This function retrieves popularity score of a Seq of SearchResult
-   * 
-   * @param weightedResults a Seq of SearchResults without popularityScores
-   * @return a Seq of SearchResult with their corresponding popularity scores
+   * Perform a search on the associated SearchBackend
    */
-  private def retrievePopularityScore(weightedResults : Seq[SearchResult]) : Seq[SearchResult] = {
-    //TODO: SUpport for multiple popularity scores
-    var results = weightedResults
-    for(popMethod <- popularity) {
-        val popMeasurer = new PopularityMeasurer(queryUrl, popMethod)
-        val entities = results map {_.uri}
-        val popularities = popMeasurer.getPopularities(entities)
-
-        results = for(i <- 0 to results.length-1) yield
-          results(i).addScore(new Score(popMethod.label, popularities(i)))
-    }
-    results
+  def search(searchTerm : String) : Seq[SearchResult] = {
+    backend.search(searchTerm, this)
   }
 
-  /** Takes a ResultSet and creates a Seq of SearchResults weighted with 
-   * their match score.
-   * 
-   */
-  private def treatResults(results : ResultSet) : Seq[SearchResult] = {
-    val scoredResults =  new collection.mutable.HashMap[String, Float]()
-
-    for(sol <- results ; varName <- sol.varNames()) {
-
-      /* if varName match to one of our predicates */
-      if(predicates.contains(varName)) {
-        val uri = sol.getResource(varName).toString
-        val pred = predicates(varName)
-        val oldScore = scoredResults.getOrElse(uri, 0f)
-        scoredResults.update(uri, oldScore + pred.weight)
-      }
-    }
-
-    var resultArray = new ArrayBuffer[SearchResult](scoredResults.size)
-    for(uri <- scoredResults.keysIterator ; if(URI.isValid(uri))) {
-      val score = new Score("match", scoredResults(uri).toFloat)
-      resultArray += new SearchResult(new URI(uri), score::Nil)
-    }
-
-    return resultArray
-  }
-  
   override def toString : String = { 
     var ret = "Name : " + name + "\n" 
     ret += "Url : " + queryUrl + "\n"
@@ -99,7 +38,6 @@ class SearchProfile(val name : String,
     for(p <- predicates.values) 
       ret += p.toString
     
-
     return ret
   }
   
@@ -113,7 +51,7 @@ class SearchProfile(val name : String,
         {predicates.values.map(pred => pred.toXML)}
       </search>
       <popularity>
-        {popularity.map(pop => pop.toXML)}
+        {popularities.map(pop => pop.toXML)}
       </popularity>
       <type-constraint>
         {types.map(typeUri => <type>{typeUri}</type>)}
@@ -182,7 +120,8 @@ object SearchProfile extends Logging {
                              queryUrl,
                              predicates,
                              popMethods,
-                             constraints))
+                             constraints,
+                             SearchBackend.getDefault))
     } catch {
       case e => 
         log.error("Unable to read XML : %s", e)

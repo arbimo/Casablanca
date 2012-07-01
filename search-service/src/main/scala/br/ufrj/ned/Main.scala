@@ -1,6 +1,7 @@
 package br.ufrj.ned;
 
 
+import br.ufrj.ned.searchbackend.BasicSparqlBackend
 import br.ufrj.ned.searchbackend._
 import br.ufrj.ned.profilemanager._
 import br.ufrj.ned.exceptions._
@@ -78,7 +79,8 @@ object Main extends App with Logging {
         } else if(cmd.startsWith("request ")) {
           val searchTerm = cmd.drop(("request ").length)
           val sb = ProfileManager.retrieveDefault
-          println(SearchQueryFactory.create(searchTerm, sb))
+          val backend = new BasicSparqlBackend
+          println(backend.createQuery(searchTerm, sb))
         } else {
           println("This was not a valid command")
           println(helpString)

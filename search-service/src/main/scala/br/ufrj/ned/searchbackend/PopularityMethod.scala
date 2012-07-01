@@ -7,6 +7,8 @@ package br.ufrj.ned.searchbackend
  */
 case class PopularityMethod(val predicate:URI, val label:String) {
 
+  val key = predicate.sparql.filter(SearchPredicate.allowedKeyChars.contains(_)).mkString
+
   def this(pred:String, label:String) = this(new URI(pred), label)
   
   override def toString : String = label+" : "+predicate
@@ -16,6 +18,10 @@ case class PopularityMethod(val predicate:URI, val label:String) {
       <label>{label}</label>
       <predicate>{predicate}</predicate>
     </measure>
+
+  def toSparql(subject:String) = 
+    subject+" "+predicate.sparql+" ?"+key
+
 }
 
 object PopularityMethod {
