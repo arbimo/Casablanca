@@ -32,7 +32,7 @@ class BasicSparqlBackend extends SearchBackend with Logging {
       
       val results = treatResults(rawResults, profile)
       
-      util.Sorting.stableSort(results)
+      results.toOrderedSearchResults
     } catch {
       case e:QueryExceptionHTTP =>
         throw new RemoteEndPointException(e.toString)
@@ -44,42 +44,35 @@ class BasicSparqlBackend extends SearchBackend with Logging {
    * their match score.
    * 
    */
-  private def treatResults(results : ResultSet, profile:SearchProfile) : Seq[SearchResult] = {
+  private def treatResults(results : ResultSet, profile:SearchProfile) : SearchResultSet = {
     val popularitiesMap = new HashMap[String, PopularityMethod]()
     for(pop <- profile.popularities)
       popularitiesMap.update(pop.key, pop)
 
-    val matchResults = new HashMap[String, Float]()
-    val popResults = new HashMap[String, HashMap[String,Float]]()
-    for(popKey <- popularitiesMap.keySet) 
-        popResults.update(popKey, new collection.mutable.HashMap[String, Float]())
-
+    /**
+     * list of the keys that are used to reference the different scores
+     */
+    val scoreKeys = popularitiesMap.keySet + "match"
+    
+    val candidates = new SearchResultSet(profile.popularities.toSet)
+    
     for(sol <- results ; varName <- sol.varNames()) {
-      /* if varName match to one of our predicates */
+      /* if varName match to one of our search predicates */
       if(profile.predicates.contains(varName)) {
         val uri = sol.getResource(varName).toString
         val pred = profile.predicates(varName)
-        val oldScore = matchResults.getOrElse(uri, 0f)
+        
+        val oldScore = candidates.getScore(uri, "match")
 
-        matchResults.update(uri, oldScore + pred.weight)
+        candidates.setScore(uri, "match", oldScore + pred.weight)
 
         for(popKey <- sol.varNames ; if(popularitiesMap.contains(popKey))) {
-          popResults(popKey).update(uri, sol.getLiteral(popKey).getFloat)
+          candidates.setScore(uri, popKey, sol.getLiteral(popKey).getFloat)
         }
       }
     }
-
-
-    var resultArray = new ArrayBuffer[SearchResult](matchResults.size)
-    for(uri <- matchResults.keysIterator ; if(URI.isValid(uri))) {
-      var scores = new Score("match", matchResults(uri).toFloat) ::Nil
-      for(popKey <- popResults.keySet)
-        scores = new Score(popularitiesMap(popKey).label,
-                           popResults(popKey).getOrElse(uri,0f)) ::scores
-      resultArray += new SearchResult(new URI(uri), scores)
-    }
-
-    return resultArray
+    
+    candidates
   }
   
   /**  

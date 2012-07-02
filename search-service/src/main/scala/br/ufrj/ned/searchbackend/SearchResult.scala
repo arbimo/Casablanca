@@ -5,11 +5,12 @@ package br.ufrj.ned.searchbackend
   * 
   * The result is described with its URI and its score
   */
-case class SearchResult(val uri : URI, val scores : List[Score]
+case class SearchResult(val uri : URI, val scores : Seq[Score]
                         ) extends Ordered[SearchResult] {
 
-  def addScore(score : Score) = new SearchResult(uri, score :: scores)
-  def score = scores.foldLeft(1f)({_ * _.normalizedValue})
+  def this(uri:String, scores:Seq[Score]) = this(new URI(uri), scores)
+  
+  def score = scores.foldLeft(0f)({_ + _.normalizedValue}) / scores.length
   
   override def compare(other : SearchResult) = - this.score.compare(other.score)
   

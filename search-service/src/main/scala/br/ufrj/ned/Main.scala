@@ -89,7 +89,7 @@ object Main extends App with Logging {
         case e:ProfileNotFoundException => println("Unable to find profile")
         case e:Exception => 
           println("Exception was raised during execution. Please check you command")
-          println(e.toString)
+          e.printStackTrace
       }
     }
     ProfileManager.stop

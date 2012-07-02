@@ -33,5 +33,4 @@ object SearchBackend {
   def getDefault : SearchBackend = {
     new BasicSparqlBackend
   }
-  
 }
