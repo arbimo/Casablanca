@@ -8,7 +8,6 @@ import com.hp.hpl.jena.query.QueryFactory
 import com.hp.hpl.jena.query.ResultSet
 import com.hp.hpl.jena.sparql.engine.http.QueryExceptionHTTP
 import scala.collection.JavaConversions._
-import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.HashMap
 
 /**
@@ -125,7 +124,7 @@ class BasicSparqlBackend extends SearchBackend with Logging {
     var structEnd = " } "
     
     var query = prefix + structBegin + body + structEnd + limit
-    
+
     return QueryFactory.create(query)
   }
   

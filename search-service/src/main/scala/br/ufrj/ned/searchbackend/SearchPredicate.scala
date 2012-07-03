@@ -10,7 +10,12 @@ import scala.collection.immutable.HashMap
  */
 abstract class SearchPredicate(val uri : URI, val weight : Float) extends Logging {
 
-  val key = uri.xml.filter(SearchPredicate.allowedKeyChars.contains(_)).mkString
+  /**
+   * This key represent the variable name to store partial results in the SPARQL
+   * query. Therefore to different SearchPredicate (by URI or method) should have 
+   * different keys.
+   */
+  val key:String
 
   /**
    * An XML representation of the SearchPredicate
@@ -40,9 +45,15 @@ abstract class SearchPredicate(val uri : URI, val weight : Float) extends Loggin
 class ExactMatchPredicate(uri:URI, weight:Float, language:Option[String]) 
             extends SearchPredicate(uri, weight) {
 
-  def this(uri:URI, weight:Float) = this(uri, weight, None)
+  def this(uri:String, weight:Float, language:Option[String]) =
+    this(new URI(uri), weight, language)
 
-  def this(uri:URI, weight:Float, language:String) = this(uri, weight, Some(language))
+
+  def this(uri:String, weight:Float) = this(uri, weight, None)
+
+  def this(uri:String, weight:Float, language:String) = this(uri, weight, Some(language))
+
+  val key = uri.xml.filter(SearchPredicate.allowedKeyChars.contains(_)).mkString
 
   override def toSPARQL(searchTerm : String) = {
     val languageFilter = language match {
@@ -78,9 +89,30 @@ class ExactMatchPredicate(uri:URI, weight:Float, language:Option[String])
 class ContainsPredicate(uri:URI, weight:Float, containsUri:URI)
             extends SearchPredicate(uri, weight) {
 
+  def this(uri:String, weight:Float, containsUri:String) =
+    this(new URI(uri), weight, new URI(containsUri))
+
+  val key = uri.xml.filter(SearchPredicate.allowedKeyChars.contains(_)).mkString +
+    containsUri.xml.filter(SearchPredicate.allowedKeyChars.contains(_)).mkString 
+
+  /**
+   * Take the term that is searched and format in order to fit in a SPARQL query.
+   * 
+   * This is mainly intented to deal with corner cases such as bif:contains which
+   * doesn't accept space in the search string.
+   */
+  def formatSearchTerm(searchTerm:String) = {
+    if(containsUri.xml == "bif:contains") {
+      val parts = searchTerm.split(" ").map("'"+_+"'")
+      "\""+parts.reduceLeft(_+" AND "+_) + "\""
+    } else {
+      "\""+searchTerm+"\""
+    }
+  }
+
   override def toSPARQL(searchTerm : String) = {
     "?" + key + " " + uri.sparql + " ?containsText ." +
-    "?containsText " + containsUri.sparql + " \"" + searchTerm + "\" .  "
+    "?containsText " +containsUri.sparql+" "+formatSearchTerm(searchTerm)+ " .  "
   }
 
   override def toXML = 
@@ -107,7 +139,7 @@ object SearchPredicate {
     /* Get the predicates to use */
     var predicates = new HashMap[String, SearchPredicate]()
     
-    val uri = new URI((predNode\"uri").text)
+    val uri = (predNode\"uri").text
     val weight = (predNode\"weight").text.toFloat
     
     val method = 
@@ -124,12 +156,13 @@ object SearchPredicate {
           else
             new ExactMatchPredicate(uri, weight, (predNode\"language").text)
         case "contains" => 
-          val containsUri = new URI((predNode\"contains-uri").text)
+          val containsUri = (predNode\"contains-uri").text
+          if(containsUri.isEmpty)
+            throw new Exception("No full text search predicate was provided")
           new ContainsPredicate(uri, weight, containsUri)
         case _ => 
           throw new Exception("Unable to recognize the match method : " +method)
       }
-    
     
     pred
   }
