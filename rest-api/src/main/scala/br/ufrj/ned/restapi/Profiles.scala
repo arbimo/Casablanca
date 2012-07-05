@@ -3,13 +3,17 @@ package br.ufrj.ned.restapi
 import javax.ws.rs._
 import br.ufrj.ned.profilemanager._
 import br.ufrj.ned.searchbackend._
+import net.liftweb.json.JsonAST._
 
 @Path("/profiles/")
-class Profiles {
+class Profiles extends WebService {
 
-  @GET
-  @Produces(Array("text/xml"))
-  def getProfiles() = {
+  override val jsonTransform : PartialFunction[JValue, JValue] = { 
+    case JField("id", JString(s)) => JField("id", JInt(s.toInt))
+    case JField("profile", x: JObject) => JField("profile", JArray(x :: Nil))
+  }
+
+  def retrieveProfiles() : scala.xml.NodeSeq = {
     val profiles = ProfileManager.getList
 
     <profiles>
@@ -19,7 +23,13 @@ class Profiles {
           <name>{profiles(i).name}</name>  
         </profile>
       }
-    </profiles>.toString
+    </profiles>
+  }
+
+  @GET
+  @Produces(Array("text/xml"))
+  def getProfiles() = {
+    ok(retrieveProfiles.toString)
   }
 
   

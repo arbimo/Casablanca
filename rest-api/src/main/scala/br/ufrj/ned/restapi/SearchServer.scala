@@ -59,7 +59,7 @@ object SearchServer extends Logging {
     println("Starting grizzly...");
     GrizzlyServerFactory.createHttpServer(BASE_URI, rc);
   }
-  
+
   def main(args: Array[String]) {
     initLogging
     
