@@ -41,11 +41,18 @@ class SearchService extends WebService {
     }
   }
 
-  @GET @Produces(Array("text/xml"))
-  def doGet(@PathParam("searchTerm") searchTerm:String,
+  @GET @Produces(Array("application/xml"))
+  def doGetXML(@PathParam("searchTerm") searchTerm:String,
             @DefaultValue("-1") @QueryParam("profile") profileId:Int) = {
 
     ok(performSearch(searchTerm, profileId).toString)
+  }
+
+  @GET @Produces(Array("application/json"))
+  def doGetJSON(@PathParam("searchTerm") searchTerm:String,
+            @DefaultValue("-1") @QueryParam("profile") profileId:Int) = {
+
+    ok(json(performSearch(searchTerm, profileId)))
   }
   
   

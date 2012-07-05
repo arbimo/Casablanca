@@ -27,10 +27,19 @@ class Profiles extends WebService {
   }
 
   @GET
-  @Produces(Array("text/xml"))
-  def getProfiles() = {
+  @Produces(Array("application/xml"))
+  def getProfilesAsXML() = {
     ok(retrieveProfiles.toString)
   }
+
+  @GET
+  @Produces(Array("application/json"))
+  def getProfilesAsJSON() = {
+    println("test")
+    println(json(retrieveProfiles))
+    ok(json(retrieveProfiles))
+  }
+
 
   
 }

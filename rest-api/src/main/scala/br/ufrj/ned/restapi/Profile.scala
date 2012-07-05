@@ -26,10 +26,16 @@ class Profile extends WebService {
   }
 
   @GET
-  @Produces(Array("text/xml"))
-  def getProfile(@PathParam("profileId") profileId:Int) = {
+  @Produces(Array("application/xml"))
+  def getProfileAsXML(@PathParam("profileId") profileId:Int) = {
     ok(retrieveProfile(profileId).toString)
     
   }
+
+  @GET
+  @Produces(Array("application/json"))
+  def getProfileAsJSON(@PathParam("profileId") profileId:Int) = {
+    ok(json(retrieveProfile(profileId)))
+  } 
 
 }

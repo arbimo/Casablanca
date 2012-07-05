@@ -5,6 +5,7 @@ import br.ufrj.ned.profilemanager._
 import br.ufrj.ned.searchbackend._
 import br.ufrj.ned.tools.TestProfileUtils._
 import br.ufrj.ned.exceptions._
+import javax.ws.rs.core.MediaType
 import org.junit.Assert._
 import org.junit.Test
 import scala.xml.XML
@@ -34,7 +35,7 @@ class ProfilesTest extends WebServiceTest {
   }
 
   @Test
-  def getProfileListTest {
+  def getProfileListXMLTest {
     val webRes = getWebResource("profiles")
     populateProfiles
     val result = webRes.get(classOf[String])
@@ -42,6 +43,14 @@ class ProfilesTest extends WebServiceTest {
     val xml = XML.loadString(result)
     val numProfiles = (xml\"profile").length
     assert(numProfiles === profiles.length, "Some profiles weren't loaded")
+  }
+
+  @Test
+  def getProfileListJSONTest {
+    val webRes = getWebResource("profiles").accept(MediaType.APPLICATION_JSON)
+    populateProfiles
+    val result = webRes.get(classOf[String])
+    assertNotNull(result);
   }
 
   @Test
