@@ -5,7 +5,6 @@
 
 package br.ufrj.ned.searchbackend
 
-import scala.collection.mutable.ArrayBuffer
 import scala.collection.mutable.HashMap
 
 class SearchResultSet(methods:Set[PopularityMethod]) {
@@ -50,7 +49,7 @@ class SearchResultSet(methods:Set[PopularityMethod]) {
 
   def toSearchResults : Seq[SearchResult] = {
     computeNormalizationFunctions
-    for(uri <- candidates.keySet.toSeq) yield {
+    for(uri <- candidates.keySet.toSeq ; if(URI.isValid(uri))) yield {
       val scores = for(scoreKey <- scoreKeys.toSeq) yield {
         val label = 
           if(popMethods.contains(scoreKey)) popMethods(scoreKey).label
