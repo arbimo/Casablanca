@@ -5,10 +5,15 @@ package br.ufrj.ned.searchbackend
   * 
   * The result is described with its URI and its score
   */
-case class SearchResult(val uri : URI, val scores : Seq[Score]
+case class SearchResult(val uri : URI, 
+                        val scores : Seq[Score],
+                        val properties :  Map[String, Set[String]]
                         ) extends Ordered[SearchResult] {
 
-  def this(uri:String, scores:Seq[Score]) = this(new URI(uri), scores)
+  def this(uri:String, scores:Seq[Score], prop:Map[String,Set[String]]) = 
+    this(new URI(uri), scores, prop)
+
+  def this(uri:String, scores:Seq[Score]) = this(uri, scores, Map[String,Set[String]]()) 
   
   def score = scores.foldLeft(0f)({_ + _.normalizedValue}) / scores.length
   
@@ -22,5 +27,15 @@ case class SearchResult(val uri : URI, val scores : Seq[Score]
       <uri>{uri}</uri>
       <global-score>{score}</global-score>
       <scores>{for(s <- scores) yield s.toXML}</scores>
+      <properties>
+        {for(label <- properties.keySet) yield
+           <property>
+             <name>{label}</name>
+             {for(value <- properties(label)) yield
+             <value>{value}</value>}
+           </property>
+         }
+      </properties>
+        
     </search-result>
 }

@@ -5,22 +5,18 @@ package br.ufrj.ned.searchbackend
  * 
  * This method consists in looking for the value associate with a predicate for each candidate
  */
-case class PopularityMethod(val predicate:URI, val label:String) {
+case class PopularityMethod(pred:String, val label:String) extends Predicate(pred){
 
-  val key = predicate.sparql.filter(SearchPredicate.allowedKeyChars.contains(_)).mkString
-
-  def this(pred:String, label:String) = this(new URI(pred), label)
-  
-  override def toString : String = label+" : "+predicate
+  override def toString : String = label+" : "+xmlUri
 
   def toXML = 
     <measure>
       <label>{label}</label>
-      <predicate>{predicate}</predicate>
+      <predicate>{xmlUri}</predicate>
     </measure>
 
   def toSparql(subject:String) = 
-    subject+" "+predicate.sparql+" ?"+key
+    subject+" "+sparqlUri+" ?"+key
 
 }
 
@@ -38,6 +34,6 @@ object PopularityMethod {
       else
         (measureNode\"label").text
 
-    new PopularityMethod(new URI(pred), label)
+    new PopularityMethod(pred, label)
   }
 }

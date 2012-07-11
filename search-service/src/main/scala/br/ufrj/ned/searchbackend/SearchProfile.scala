@@ -20,6 +20,7 @@ class SearchProfile(val name : String,
                     val predicates : HashMap[String, SearchPredicate],
                     val popularities : Seq[PopularityMethod],
                     val types : Set[URI],
+                    val properties : Seq[PropertyPredicate],
                     val backend : SearchBackend
                      ) extends Logging {
 
@@ -56,6 +57,9 @@ class SearchProfile(val name : String,
       <type-constraint>
         {types.map(typeUri => <type>{typeUri}</type>)}
       </type-constraint>
+      <properties>
+        {properties.map(prop => prop.toXML)}
+      </properties>
     </profile>
   }
   
@@ -115,12 +119,19 @@ object SearchProfile extends Logging {
       var constraints = new ListSet[URI]
       for(typeUri <- typeConstraints.map(_.text) ; if URI.isValid(typeUri))
         constraints += new URI(typeUri)
+
+      /* get the properties */
+      val propertiesNodes = config\"properties"\"property"
+      val properties = 
+        for(propNode <- propertiesNodes) yield
+          PropertyPredicate(propNode)
       
       Some(new SearchProfile(name,
                              queryUrl,
                              predicates,
                              popMethods,
                              constraints,
+                             properties,
                              SearchBackend.getDefault))
     } catch {
       case e => 

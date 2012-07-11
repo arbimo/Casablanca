@@ -13,14 +13,6 @@
       <uri>http://www.w3.org/2000/01/rdf-schema#label</uri>
       <weight>25</weight>
     </search-predicate>
-    <search-predicate>
-      <uri>http://yago-knowledge.org/resource/hasFamilyName</uri>
-      <weight>25</weight>
-    </search-predicate>
-    <search-predicate>
-      <uri>http://yago-knowledge.org/resource/hasGivenName</uri>
-      <weight>5</weight>
-    </search-predicate>
   </search>
   <popularity>
     <measure>
@@ -32,4 +24,10 @@
       <predicate>http://yago-knowledge.org/resource/hasPopulation</predicate>
     </measure>
   </popularity>
+  <properties>
+    <property>
+      <label>Name</label>
+      <predicate>http://yago-knowledge.org/resource/hasPreferredName</predicate>
+    </property>
+  </properties>
 </profile>

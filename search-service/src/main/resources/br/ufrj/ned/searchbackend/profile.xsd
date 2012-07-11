@@ -22,6 +22,19 @@
             <xs:element name="url" type="uriType"/>
         </xs:sequence>
     </xs:complexType>
+
+    <xs:complexType name="propertyType">
+        <xs:sequence>
+            <xs:element name="label" type="xs:string"/>
+            <xs:element name="predicate" type="uriType"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="propertiesType">
+        <xs:sequence>
+            <xs:element name="property" type="propertyType" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
     
     <xs:complexType name="searchPredicateType">
         <xs:sequence>
@@ -66,6 +79,7 @@
             <xs:element name="search" type="searchType"/>
             <xs:element name="popularity" type="popularityType" minOccurs="0"/>
             <xs:element name="type-constraint" type="typeConstraintType" minOccurs="0"/>
+            <xs:element name="properties" type="propertiesType" minOccurs="0"/>
         </xs:sequence>
     </xs:complexType>
     

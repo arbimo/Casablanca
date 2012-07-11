@@ -2,10 +2,7 @@ package br.ufrj.ned.searchbackend
 
 import br.ufrj.ned.exceptions._
 import com.codahale.logula.Logging
-import com.hp.hpl.jena.query.Query
-import com.hp.hpl.jena.query.QueryExecutionFactory
-import com.hp.hpl.jena.query.QueryFactory
-import com.hp.hpl.jena.query.ResultSet
+import com.hp.hpl.jena.query._
 import com.hp.hpl.jena.sparql.engine.http.QueryExceptionHTTP
 import scala.collection.JavaConversions._
 import scala.collection.mutable.HashMap
@@ -52,8 +49,10 @@ class BasicSparqlBackend extends SearchBackend with Logging {
      * list of the keys that are used to reference the different scores
      */
     val scoreKeys = popularitiesMap.keySet + "match"
+    val propKeys = 
+      for(p <- profile.properties.toSet[PropertyPredicate]) yield p.key
     
-    val candidates = new SearchResultSet(profile.popularities.toSet)
+    val candidates = new SearchResultSet(profile.popularities.toSet, profile.properties.toSet)
     
     for(sol <- results ; varName <- sol.varNames()) {
       /* if varName match to one of our search predicates */
@@ -65,8 +64,11 @@ class BasicSparqlBackend extends SearchBackend with Logging {
 
         candidates.setScore(uri, "match", oldScore + pred.weight)
 
-        for(popKey <- sol.varNames ; if(popularitiesMap.contains(popKey))) {
-          candidates.setScore(uri, popKey, sol.getLiteral(popKey).getFloat)
+        for(key <- sol.varNames) {
+          if(popularitiesMap.contains(key))
+            candidates.setScore(uri, key, sol.getLiteral(key).getFloat)
+          else if(propKeys.contains(key))
+            candidates.addProp(uri, key, sol.get(key).toString)
         }
       }
     }
@@ -95,7 +97,10 @@ class BasicSparqlBackend extends SearchBackend with Logging {
     for(pop <- profile.popularities)
       structBegin += "?"+pop.key+" "
 
-    
+    /* Add the property keys */
+    for(prop <- profile.properties)
+      structBegin += "?"+prop.key+" "
+
     structBegin += " WHERE { "
     
     var body = ""
@@ -110,11 +115,15 @@ class BasicSparqlBackend extends SearchBackend with Logging {
       
       /* type constraint */
       for(typeUri <- profile.types)
-        body += "?" + p.key + " a " + typeUri.sparql + " . "
+        body += "?" + p.key + " a " + typeUri.sparqlUri + " . "
       
       /* popularity measure */
       for(pop <- profile.popularities)
         body += " OPTIONAL { " + pop.toSparql("?"+p.key) +" } "
+
+      /* properties */
+      for(prop <- profile.properties)
+        body += " OPTIONAL { " + prop.toSparql("?"+p.key) +" } "
       
       body += " } "
       if(it.hasNext)

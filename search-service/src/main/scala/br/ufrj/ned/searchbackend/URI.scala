@@ -12,7 +12,7 @@ class URI(rawURI : String) extends Logging {
 
   require(URI.isValid(rawURI), {log.error("URI \"%s\" is not valid", rawURI)})
 
-  val sparql = normalizeUri(rawURI)
+  val sparqlUri = normalizeUri(rawURI)
 
   /** 
    * Normalize a URI for use in SPARQL.
@@ -30,13 +30,13 @@ class URI(rawURI : String) extends Logging {
   /**
    * A version of the URI that can be inserted in a valid XML document.
    */
-  def xml =
+  val xmlUri =
     if(rawURI.startsWith("<") && rawURI.endsWith(">"))
       rawURI.drop(1).dropRight(1)
     else
       rawURI
   
-  override def toString = this.xml
+  override def toString = this.xmlUri
   
 }
 
