@@ -35,8 +35,6 @@ class Profiles extends WebService {
   @GET
   @Produces(Array("application/json"))
   def getProfilesAsJSON() = {
-    println("test")
-    println(json(retrieveProfiles))
     ok(json(retrieveProfiles))
   }
 

@@ -14,7 +14,10 @@ class Score(val label:String, val rawValue:Float, val normalizedValue:Float) {
   override def toString = label+":"+normalizedValue
 
   def toXML = 
-    <score label={label}>{normalizedValue}</score>
+    <score> 
+      <label>{label}</label>
+      <value>{normalizedValue}</value>
+    </score>
 
 }
 

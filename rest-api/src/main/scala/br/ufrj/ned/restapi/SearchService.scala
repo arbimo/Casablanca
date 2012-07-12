@@ -11,8 +11,9 @@ class SearchService extends WebService {
 
   override val jsonTransform : PartialFunction[JValue, JValue] = { 
     case JField("global-score", JString(s)) => JField("global-score", JDouble(s.toDouble))
-    case JField("score", JString(s)) => JField("score", JDouble(s.toDouble))
+    case JField("score", x:JObject) => JField("score", JArray(x :: Nil))
     case JField("search-result", x: JObject) => JField("search-result", JArray(x :: Nil))
+    case JField("property", x: JObject) => JField("property", JArray(x :: Nil))
   }
 
   /**

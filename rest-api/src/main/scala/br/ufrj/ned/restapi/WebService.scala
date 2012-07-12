@@ -9,15 +9,13 @@ class WebService {
    * Format the the response string to enable cross domain access.
    */
   def ok(response : String ) : Response = {
-    val tmp = Response.ok().entity(response).header("Access-Control-Allow-Origin","*").build();
-    println(tmp)
-    tmp
+    Response.ok().entity(response).header("Access-Control-Allow-Origin","*").build();
   }
 
   def json(xml : scala.xml.NodeSeq) : String = {
     val jval = Xml.toJson(xml)
     val valid = jval.transform(jsonTransform)
-    Printer.pretty(render(valid))
+    Printer.compact(render(valid))
   }
 
   val jsonTransform : PartialFunction[JValue, JValue] = { case x => x}
