@@ -6,28 +6,28 @@
   </end-point>
   <search>
     <search-predicate>
-      <uri>http://yago-knowledge.org/resource/hasPreferredName</uri>
+      <uri>yago:hasPreferredName</uri>
       <weight>50</weight>
     </search-predicate>
     <search-predicate>
-      <uri>http://www.w3.org/2000/01/rdf-schema#label</uri>
+      <uri>rdfs:label</uri>
       <weight>25</weight>
     </search-predicate>
   </search>
   <popularity>
     <measure>
       <label>Incoming links popularity</label>
-      <predicate>http://yago-knowledge.org/resource/hasNumberOfWikipediaLinks</predicate>
+      <predicate>yago:hasNumberOfWikipediaLinks</predicate>
     </measure>
     <measure>
       <label>Population popluarity</label>
-      <predicate>http://yago-knowledge.org/resource/hasPopulation</predicate>
+      <predicate>yago:hasPopulation</predicate>
     </measure>
   </popularity>
   <properties>
     <property>
       <label>Name</label>
-      <predicate>http://yago-knowledge.org/resource/hasPreferredName</predicate>
+      <predicate>yago:hasPreferredName</predicate>
     </property>
   </properties>
 </profile>

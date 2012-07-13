@@ -6,12 +6,12 @@
   </end-point>
   <search>
     <search-predicate>
-      <uri>http://xmlns.com/foaf/0.1/name</uri>
+      <uri>foaf:name</uri>
       <weight>2</weight>
       <language>en</language>
     </search-predicate>
     <search-predicate>
-      <uri>http://xmlns.com/foaf/0.1/name</uri>
+      <uri>foaf:name</uri>
       <weight>1</weight>
       <method>contains</method>
       <contains-uri>bif:contains</contains-uri>
@@ -19,10 +19,10 @@
   </search>
   <popularity>
     <measure>
-      <predicate>http://dbpedia.org/ontology/populationTotal</predicate>
+      <predicate>dbonto:populationTotal</predicate>
     </measure>
   </popularity>
   <type-constraint>
-    <type>http://dbpedia.org/ontology/PopulatedPlace</type>
+    <type>dbonto:PopulatedPlace</type>
   </type-constraint>
 </profile>

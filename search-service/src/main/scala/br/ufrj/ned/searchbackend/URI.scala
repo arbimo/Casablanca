@@ -10,9 +10,25 @@ import com.codahale.logula.Logging
  */
 class URI(rawURI : String) extends Logging {
 
-  require(URI.isValid(rawURI), {log.error("URI \"%s\" is not valid", rawURI)})
+  val fullURI = {
+    if(rawURI.startsWith("<") && rawURI.endsWith(">"))
+      rawURI
+    else if(rawURI.startsWith("http://"))
+      normalizeURI(rawURI)
+    else {
+      val prefix = rawURI.dropRight(rawURI.length - rawURI.indexOf(":"))
+      normalizeURI(Prefix(prefix)+rawURI.drop(rawURI.indexOf(":")+1))
+    }
+  }
 
-  val sparqlUri = normalizeUri(rawURI)
+  require(URI.isValid(fullURI), {log.error("URI \"%s\" is not valid", rawURI)})
+
+  val sparqlUri = fullURI
+
+  /**
+   * A version of the URI that can be inserted in a valid XML document.
+   */
+  val xmlUri = fullURI.drop(1).dropRight(1)
 
   /** 
    * Normalize a URI for use in SPARQL.
@@ -20,21 +36,12 @@ class URI(rawURI : String) extends Logging {
    * @param uriText URI to normalize
    * @return <uriText> if the URI doesn't use a prefix, uriText otherwise
    */
-  def normalizeUri(uriText : String) : String = {
+  def normalizeURI(uriText : String) : String = {
     if(uriText.startsWith("http://") || uriText.startsWith("bif:"))
       "<"+uriText+">"
     else
       uriText
   }
-  
-  /**
-   * A version of the URI that can be inserted in a valid XML document.
-   */
-  val xmlUri =
-    if(rawURI.startsWith("<") && rawURI.endsWith(">"))
-      rawURI.drop(1).dropRight(1)
-    else
-      rawURI
   
   override def toString = this.xmlUri
   

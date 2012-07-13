@@ -144,7 +144,7 @@ function makeTable(data, columns) {
   forEach(data, function(object) {
     var row = dom("TR");
     forEach(columns, function(name) {
-      row.appendChild(dom("TD", object.tags, decodeURI(String(object[name]))));
+      row.appendChild(dom("TD", object.tags, String(object[name])));
     });
     body.appendChild(row);
   });

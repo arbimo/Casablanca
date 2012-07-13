@@ -6,7 +6,7 @@
   </end-point>
   <search>
     <search-predicate>
-      <uri>http://www.w3.org/2000/01/rdf-schema#label</uri>
+      <uri>rdfs:label</uri>
       <weight>25</weight>
       <method>contains</method>
       <contains-uri>bif:contains</contains-uri>
