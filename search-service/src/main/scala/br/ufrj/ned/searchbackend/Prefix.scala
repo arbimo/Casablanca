@@ -16,7 +16,7 @@ object Prefix {
 
   def apply(pref:String) : String = {
     if(!prefixes.contains(pref))
-      throw new Exception("Prefix "+pref+" is not is the available one.")
+      throw new Exception("Prefix "+pref+" is not is in the available ones.")
     prefixes(pref)
   }
 }

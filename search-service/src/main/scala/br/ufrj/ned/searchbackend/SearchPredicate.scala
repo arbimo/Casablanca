@@ -124,7 +124,11 @@ object SearchPredicate {
     var predicates = new HashMap[String, SearchPredicate]()
     
     val uri = (predNode\"uri").text
-    val weight = (predNode\"weight").text.toFloat
+    val weight = 
+      if((predNode\"weight").isEmpty)
+        0
+      else
+        (predNode\"weight").text.toFloat
     
     val method = 
       if((predNode\"method").isEmpty)

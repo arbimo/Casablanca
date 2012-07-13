@@ -39,7 +39,7 @@
     <xs:complexType name="searchPredicateType">
         <xs:sequence>
             <xs:element name="uri" type="uriType"/>
-            <xs:element name="weight" type="xs:decimal"/>
+            <xs:element name="weight" type="xs:decimal" minOccurs="0"/>
             <xs:element name="method" type="methodType" minOccurs="0"/>
             <xs:element name="contains-uri" type="uriType" minOccurs="0"/>
             <xs:element name="language" type="xs:string" minOccurs="0"/>
