@@ -78,7 +78,7 @@
             <xs:element name="end-point" type="endPointType"/>
             <xs:element name="search" type="searchType"/>
             <xs:element name="popularity" type="popularityType" minOccurs="0"/>
-            <xs:element name="type-constraint" type="typeConstraintType" minOccurs="0"/>
+            <xs:element name="type-constraint" type="typeConstraintType" minOccurs="0" maxOccurs="unbounded"/>
             <xs:element name="properties" type="propertiesType" minOccurs="0"/>
         </xs:sequence>
     </xs:complexType>

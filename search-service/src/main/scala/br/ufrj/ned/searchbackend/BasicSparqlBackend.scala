@@ -114,9 +114,17 @@ class BasicSparqlBackend extends SearchBackend with Logging {
       body += p.toSPARQL(searchTerm)
       
       /* type constraint */
-      for(typeUri <- profile.types)
-        body += "?" + p.key + " a " + typeUri.sparqlUri + " . "
-      
+      for(typeSeq <- profile.types) {
+        body += " { "
+        val typeIt = typeSeq.iterator
+        while(typeIt.hasNext) {
+          val typeUri = typeIt.next
+          body += " { ?" + p.key + " a " + typeUri.sparqlUri + " . } "
+          if(typeIt.hasNext)
+            body += " UNION "
+        }
+        body += " } "
+      }
       /* popularity measure */
       for(pop <- profile.popularities)
         body += " OPTIONAL { " + pop.toSparql("?"+p.key) +" } "

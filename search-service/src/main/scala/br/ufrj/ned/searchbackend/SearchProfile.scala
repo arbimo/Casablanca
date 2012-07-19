@@ -6,7 +6,6 @@ import com.codahale.logula.Logging
 import com.hp.hpl.jena.query._
 import br.ufrj.ned.tools.XSDValidator
 import collection.immutable.HashMap
-import scala.collection.immutable.ListSet
 import br.ufrj.ned.exceptions._
 
 
@@ -19,7 +18,7 @@ class SearchProfile(val name : String,
                     val queryUrl : String,
                     val predicates : HashMap[String, SearchPredicate],
                     val popularities : Seq[PopularityMethod],
-                    val types : Set[URI],
+                    val types : Seq[Seq[URI]],
                     val properties : Seq[PropertyPredicate],
                     val backend : SearchBackend
                      ) extends Logging {
@@ -54,9 +53,10 @@ class SearchProfile(val name : String,
       <popularity>
         {popularities.map(pop => pop.toXML)}
       </popularity>
+      {types.map(typeSeq =>
       <type-constraint>
-        {types.map(typeUri => <type>{typeUri}</type>)}
-      </type-constraint>
+        {typeSeq.map(typeUri => <type>{typeUri}</type>)}
+      </type-constraint>)}
       <properties>
         {properties.map(prop => prop.toXML)}
       </properties>
@@ -115,10 +115,11 @@ object SearchProfile extends Logging {
           PopularityMethod(measureNode)
 
       /* get the type constraints */
-      val typeConstraints = config\"type-constraint"\"type"
-      var constraints = new ListSet[URI]
-      for(typeUri <- typeConstraints.map(_.text) ; if URI.isValid(typeUri))
-        constraints += new URI(typeUri)
+      val typeConstraints = config\"type-constraint"
+      val constraints = 
+        for(typeUris <- typeConstraints) yield
+          for(uri <- (typeUris\"type").map(_.text)) yield
+            new URI(uri)
 
       /* get the properties */
       val propertiesNodes = config\"properties"\"property"
