@@ -1,5 +1,6 @@
 package br.ufrj.ned.searchbackend
 
+import br.ufrj.ned.searchbackend.resources._
 import com.codahale.logula.Logging
 import scala.collection.immutable.HashMap
 

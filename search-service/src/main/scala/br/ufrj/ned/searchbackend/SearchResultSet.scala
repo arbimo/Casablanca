@@ -5,21 +5,23 @@
 
 package br.ufrj.ned.searchbackend
 
+import br.ufrj.ned.searchbackend.resources._
+import br.ufrj.ned.searchbackend.searchcomponents._
 import scala.collection.mutable.HashMap
 
-class SearchResultSet(methods:Set[PopularityMethod], properties:Set[PropertyPredicate]) {
+class SearchResultSet(methods:Set[Popularity], properties:Set[Property]) {
 
   /**
    * Collection of PopularityMethod index by their key
    */
-  val popMethods = new HashMap[String, PopularityMethod]
+  val popMethods = new HashMap[String, Popularity]
   for(meth <- methods)
     popMethods += (meth.key -> meth)
 
   /**
    * Collection of PropertyPredicate index by their key
    */
-  val props = new HashMap[String, PropertyPredicate]
+  val props = new HashMap[String, Property]
   for(p <- properties)
     props += (p.key -> p)
 

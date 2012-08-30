@@ -1,5 +1,6 @@
 package br.ufrj.ned.searchbackend
 
+import br.ufrj.ned.searchbackend.resources._
 
 /** This class contains a single result from a search.
   * 

@@ -1,5 +1,7 @@
 package br.ufrj.ned.searchbackend
 
+import br.ufrj.ned.searchbackend.resources._
+import br.ufrj.ned.searchbackend.searchcomponents._
 import br.ufrj.ned.exceptions._
 import com.codahale.logula.Logging
 import com.hp.hpl.jena.query._
@@ -41,18 +43,23 @@ class BasicSparqlBackend extends SearchBackend with Logging {
    * 
    */
   private def treatResults(results : ResultSet, profile:SearchProfile) : SearchResultSet = {
-    val popularitiesMap = new HashMap[String, PopularityMethod]()
-    for(pop <- profile.popularities)
-      popularitiesMap.update(pop.key, pop)
+    val popularitiesMap = new HashMap[String, Popularity]()
+    for(pop <- profile.specialization ; if(pop.isInstanceOf[Popularity]))
+      popularitiesMap.update(pop.key, pop.asInstanceOf[Popularity])
 
     /**
      * list of the keys that are used to reference the different scores
      */
     val scoreKeys = popularitiesMap.keySet + "match"
     val propKeys = 
-      for(p <- profile.properties.toSet[PropertyPredicate]) yield p.key
+      for(p <- profile.specialization.toSet[SpecializationComponent] ;
+          if(p.isInstanceOf[Property])) yield p.key
     
-    val candidates = new SearchResultSet(profile.popularities.toSet, profile.properties.toSet)
+    val candidates = new SearchResultSet(
+      profile.specialization.filter(_.isInstanceOf[Popularity])
+        .map(_.asInstanceOf[Popularity]).toSet, 
+      profile.specialization.filter(_.isInstanceOf[Property])
+        .map(_.asInstanceOf[Property]).toSet)
     
     for(sol <- results ; varName <- sol.varNames()) {
       /* if varName match to one of our search predicates */
@@ -93,13 +100,9 @@ class BasicSparqlBackend extends SearchBackend with Logging {
     for(p <- profile.predicates.values)
       structBegin += "?" + p.key + " "
 
-    /* Add the popularity keys */
-    for(pop <- profile.popularities)
-      structBegin += "?"+pop.key+" "
-
-    /* Add the property keys */
-    for(prop <- profile.properties)
-      structBegin += "?"+prop.key+" "
+    /* Add the popularities and properties keys */
+    for(spec <- profile.specialization ; if(spec.result != None))
+      structBegin += spec.result.get.toSparql + " "
 
     structBegin += " WHERE { "
     
@@ -113,25 +116,9 @@ class BasicSparqlBackend extends SearchBackend with Logging {
       /* search part*/
       body += p.toSPARQL(searchTerm)
       
-      /* type constraint */
-      for(typeSeq <- profile.types) {
-        body += " { "
-        val typeIt = typeSeq.iterator
-        while(typeIt.hasNext) {
-          val typeUri = typeIt.next
-          body += " { ?" + p.key + " a " + typeUri.sparqlUri + " . } "
-          if(typeIt.hasNext)
-            body += " UNION "
-        }
-        body += " } "
-      }
-      /* popularity measure */
-      for(pop <- profile.popularities)
-        body += " OPTIONAL { " + pop.toSparql("?"+p.key) +" } "
-
-      /* properties */
-      for(prop <- profile.properties)
-        body += " OPTIONAL { " + prop.toSparql("?"+p.key) +" } "
+      /* specialization lines */
+      for(spec <- profile.specialization)
+        body += spec.toSparql(new Var(p.key))
       
       body += " } "
       if(it.hasNext)

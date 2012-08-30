@@ -1,5 +1,6 @@
-package br.ufrj.ned.searchbackend
+package br.ufrj.ned.searchbackend.resources
 
+import br.ufrj.ned.searchbackend._
 import com.codahale.logula.Logging
 
 /**
@@ -8,7 +9,7 @@ import com.codahale.logula.Logging
  * Its main goal is to provide method to generate both SPARQL and XML
  * valid versions of the URI.
  */
-class URI(rawURI : String) extends Logging {
+class URI(rawURI : String) extends Resource with Logging {
 
   val fullURI = {
     if(rawURI.startsWith("<") && rawURI.endsWith(">"))
@@ -24,6 +25,7 @@ class URI(rawURI : String) extends Logging {
   require(URI.isValid(fullURI), {log.error("URI \"%s\" is not valid", rawURI)})
 
   val sparqlUri = fullURI
+  def toSparql = sparqlUri
 
   /**
    * A version of the URI that can be inserted in a valid XML document.

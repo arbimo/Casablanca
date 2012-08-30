@@ -2,6 +2,8 @@ package br.ufrj.ned.searchbackend
 
 import scala.collection.JavaConversions._
 
+import br.ufrj.ned.searchbackend.resources._
+import br.ufrj.ned.searchbackend.searchcomponents._
 import com.codahale.logula.Logging
 import com.hp.hpl.jena.query._
 import br.ufrj.ned.tools.XSDValidator
@@ -17,9 +19,7 @@ import br.ufrj.ned.exceptions._
 class SearchProfile(val name : String,
                     val queryUrl : String,
                     val predicates : HashMap[String, SearchPredicate],
-                    val popularities : Seq[PopularityMethod],
-                    val types : Seq[Seq[URI]],
-                    val properties : Seq[PropertyPredicate],
+                    val specialization : Seq[SpecializationComponent],
                     val backend : SearchBackend
                      ) extends Logging {
 
@@ -41,7 +41,7 @@ class SearchProfile(val name : String,
     return ret
   }
   
-  lazy val toXML = {
+  lazy val toXML = <profile/>/*{
     <profile>
       <name>{name}</name>
       <end-point>
@@ -61,7 +61,7 @@ class SearchProfile(val name : String,
         {properties.map(prop => prop.toXML)}
       </properties>
     </profile>
-  }
+  }*/
   
   
 }
@@ -110,28 +110,27 @@ object SearchProfile extends Logging {
 
       /* Get the popularity measurement method */
       val popMeasures = config\"popularity"\"measure"
-      val popMethods = 
+      val popularities : Seq[SpecializationComponent] = 
         for(measureNode <- popMeasures) yield
-          PopularityMethod(measureNode)
+          SimplePopularity(measureNode)
 
       /* get the type constraints */
-      val typeConstraints = config\"type-constraint"
-      val constraints = 
-        for(typeUris <- typeConstraints) yield
-          for(uri <- (typeUris\"type").map(_.text)) yield
-            new URI(uri)
+      val typeUris = config\"type-constraint"\"type"
+      val constraints : Seq[SpecializationComponent] = 
+        for(uri <- (typeUris).map(_.text)) yield
+          new TypeConstraint(new URI(uri))
 
       /* get the properties */
       val propertiesNodes = config\"properties"\"property"
-      val properties = 
+      val properties : Seq[SpecializationComponent] = 
         for(propNode <- propertiesNodes) yield
-          PropertyPredicate(propNode)
+          SimpleProperty(propNode)
       
       Some(new SearchProfile(name,
                              queryUrl,
                              predicates,
-                             popMethods,
-                             constraints,
+                             popularities ++:
+                             constraints ++:
                              properties,
                              SearchBackend.getDefault))
     } catch {
