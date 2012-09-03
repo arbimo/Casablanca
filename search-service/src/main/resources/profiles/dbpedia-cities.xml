@@ -17,12 +17,14 @@
       <contains-uri>bif:contains</contains-uri>
     </search-predicate>
   </search>
-  <popularity>
-    <measure>
+  <popularities>
+    <light>
       <predicate>dbonto:populationTotal</predicate>
-    </measure>
-  </popularity>
-  <type-constraint>
-    <type>dbonto:PopulatedPlace</type>
-  </type-constraint>
+    </light>
+  </popularities>
+  <constraints>
+    <light>
+      <type>dbonto:PopulatedPlace</type>
+    </light>
+  </constraints>
 </profile>

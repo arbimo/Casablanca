@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <profile>
-  <name>Local Fuseki End Point for Yago2 for cities (population as score)</name>
+  <name>Fuseki End Point for Yago2 (population as score)</name>
   <end-point>
     <url>http://localhost:3030/Yago/query</url>
   </end-point>
@@ -14,20 +14,28 @@
       <weight>25</weight>
     </search-predicate>
   </search>
-  <popularity>
-    <measure>
+  <popularities>
+    <light>
       <label>Incoming links popularity</label>
       <predicate>yago:hasNumberOfWikipediaLinks</predicate>
-    </measure>
-    <measure>
+    </light>
+    <light>
       <label>Population popluarity</label>
       <predicate>yago:hasPopulation</predicate>
-    </measure>
-  </popularity>
+    </light>
+  </popularities>
   <properties>
-    <property>
-      <label>Name</label>
+    <light>
+      <label>Preferred Name</label>
       <predicate>yago:hasPreferredName</predicate>
-    </property>
+    </light>
+    <full>
+      <label>Label</label>
+      <triple>
+        <s type="Candidate"/>
+        <p type="Predicate">rdfs:label</p>
+        <o type="Target"/>
+      </triple>
+    </full>
   </properties>
 </profile>

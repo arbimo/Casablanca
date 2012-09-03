@@ -45,6 +45,8 @@ class URI(rawURI : String) extends Resource with Logging {
       uriText
   }
   
+  val typeStr = "URI"
+  val value = this.xmlUri
   override def toString = this.xmlUri
   
 }

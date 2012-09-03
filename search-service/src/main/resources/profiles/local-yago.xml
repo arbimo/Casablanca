@@ -22,9 +22,24 @@
       <weight>5</weight>
     </search-predicate>
   </search>
-  <popularity>
-    <measure>
+  <popularities>
+    <light>
       <predicate>yago:hasNumberOfWikipediaLinks</predicate>
-    </measure>
-  </popularity>
+    </light>
+  </popularities>
+  <properties>
+    <full>
+      <label>Type</label>
+      <triple>
+        <s type="Candidate"/>
+        <p type="Predicate">rdf:type</p>
+        <o type="Variable">typeURI</o>
+      </triple>
+      <triple>
+        <s type="Variable">typeURI</s>
+        <p type="Predicate">rdfs:label</p>
+        <o type="Target"/>
+      </triple>
+    </full>
+  </properties>
 </profile>

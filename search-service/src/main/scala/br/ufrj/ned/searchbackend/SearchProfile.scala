@@ -9,6 +9,8 @@ import com.hp.hpl.jena.query._
 import br.ufrj.ned.tools.XSDValidator
 import collection.immutable.HashMap
 import br.ufrj.ned.exceptions._
+import scala.xml.Node
+import scala.xml.NodeSeq
 
 
 /** This class aims at storing information about a search backend
@@ -30,6 +32,15 @@ class SearchProfile(val name : String,
     backend.search(searchTerm, this)
   }
 
+  def properties : Seq[Property] =
+    specialization.filter(_.isInstanceOf[Property]).map(_.asInstanceOf[Property])
+
+  def popularities : Seq[Popularity] =
+    specialization.filter(_.isInstanceOf[Popularity]).map(_.asInstanceOf[Popularity])
+
+  def constraints : Seq[Constraint] =
+    specialization.filter(_.isInstanceOf[Constraint]).map(_.asInstanceOf[Constraint])
+
   override def toString : String = { 
     var ret = "Name : " + name + "\n" 
     ret += "Url : " + queryUrl + "\n"
@@ -41,7 +52,7 @@ class SearchProfile(val name : String,
     return ret
   }
   
-  lazy val toXML = <profile/>/*{
+  lazy val toXML = 
     <profile>
       <name>{name}</name>
       <end-point>
@@ -50,19 +61,16 @@ class SearchProfile(val name : String,
       <search>
         {predicates.values.map(pred => pred.toXML)}
       </search>
-      <popularity>
-        {popularities.map(pop => pop.toXML)}
-      </popularity>
-      {types.map(typeSeq =>
-      <type-constraint>
-        {typeSeq.map(typeUri => <type>{typeUri}</type>)}
-      </type-constraint>)}
+      <popularities>
+        {popularities.map(_.toXML)}
+      </popularities>
+      <constraints>
+        {constraints.map(_.toXML)}
+      </constraints>
       <properties>
-        {properties.map(prop => prop.toXML)}
+        {properties.map(_.toXML)}
       </properties>
     </profile>
-  }*/
-  
   
 }
 
@@ -88,14 +96,24 @@ object SearchProfile extends Logging {
    * @return a SearchProfile built from the configuration
    */
   def apply(config : scala.xml.Node) : Option[SearchProfile] = {
+    /** Returns all direct <full/> or <light/> children */
+    def lightFullChildren(node : xml.NodeSeq) = 
+      if(node.nonEmpty)
+        node.map(_.child)
+            .fold(NodeSeq.Empty)(_ union _)
+            .filter(child => child.label=="light" || child.label=="full")
+      else
+        NodeSeq.Empty
+
     try {
 
-      /** Checks wether the XML is valid according to the provided schema */
+      /** Checks wether the XML is valid according to the provided schema 
       val schemaIn = this.getClass.getResourceAsStream("profile.xsd")
       if(schemaIn == null)
         log.error("Unable to find XML schema for profiles")
       else if(!XSDValidator.validate(config.mkString, schemaIn))
         throw new InvalidProfileException("The XML profile doesn't match the XSD")
+      */
 
       val name = (config\"name").text
       val queryUrl = (config\"end-point"\"url").text
@@ -109,22 +127,22 @@ object SearchProfile extends Logging {
       }
 
       /* Get the popularity measurement method */
-      val popMeasures = config\"popularity"\"measure"
+      val popMeasures = lightFullChildren(config\"popularities")
       val popularities : Seq[SpecializationComponent] = 
-        for(measureNode <- popMeasures) yield
-          SimplePopularity(measureNode)
+        for(measureNode <- popMeasures)
+          yield Popularity(measureNode)
 
-      /* get the type constraints */
-      val typeUris = config\"type-constraint"\"type"
+      /* get the constraints */
+      val consNodes = lightFullChildren(config\"constraints")
       val constraints : Seq[SpecializationComponent] = 
-        for(uri <- (typeUris).map(_.text)) yield
-          new TypeConstraint(new URI(uri))
+        for(cons <- consNodes)
+          yield Constraint(cons)
 
       /* get the properties */
-      val propertiesNodes = config\"properties"\"property"
+      val props= lightFullChildren(config\"properties")
       val properties : Seq[SpecializationComponent] = 
-        for(propNode <- propertiesNodes) yield
-          SimpleProperty(propNode)
+        for(propNode <- props)
+            yield Property(propNode)
       
       Some(new SearchProfile(name,
                              queryUrl,

@@ -56,10 +56,8 @@ class BasicSparqlBackend extends SearchBackend with Logging {
           if(p.isInstanceOf[Property])) yield p.key
     
     val candidates = new SearchResultSet(
-      profile.specialization.filter(_.isInstanceOf[Popularity])
-        .map(_.asInstanceOf[Popularity]).toSet, 
-      profile.specialization.filter(_.isInstanceOf[Property])
-        .map(_.asInstanceOf[Property]).toSet)
+      profile.popularities.toSet,
+      profile.properties.toSet)
     
     for(sol <- results ; varName <- sol.varNames()) {
       /* if varName match to one of our search predicates */
@@ -118,7 +116,7 @@ class BasicSparqlBackend extends SearchBackend with Logging {
       
       /* specialization lines */
       for(spec <- profile.specialization)
-        body += spec.toSparql(new Var(p.key))
+        body += spec.toSparql(new Variable(p.key))
       
       body += " } "
       if(it.hasNext)
@@ -129,7 +127,14 @@ class BasicSparqlBackend extends SearchBackend with Logging {
     
     var query = prefix + structBegin + body + structEnd + limit
 
-    return QueryFactory.create(query)
+    try {
+      return QueryFactory.create(query)
+    } catch {
+      case e => {
+          println("Problem loading query :\n" + query)
+          throw e
+        }
+    }
   }
   
 }

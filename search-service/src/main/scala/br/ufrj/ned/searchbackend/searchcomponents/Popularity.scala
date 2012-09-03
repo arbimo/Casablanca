@@ -6,31 +6,66 @@ import br.ufrj.ned.searchbackend.resources._
 
 class Popularity extends SpecializationComponent {
 
-  val result = Some(new Var(key))
+  val result = Some(new Variable(key))
   override val optional = true
   var label = "popularity"
 
+  def toXML =
+    <full>
+      <label>{label}</label>
+      {for(l <- lines) yield l.toXML}
+    </full>
 }
 
-class SimplePopularity(pred:Predicate, popLabel:String) extends Popularity {
-  addLine(Candidate, pred, result.get)
+object Popularity {
+
+  def apply(node : xml.Node) : Popularity = {
+    if(node.label == "light")
+      PopularityLight(node)
+    else {
+      val pop = new Popularity
+      pop.label = 
+        if(node\"label" isEmpty)
+          "popularity"
+        else 
+          (node\"label").text
+
+      for(triple <- node\"triple") {
+        val s = Resource((triple\"s").head)
+        val p = Resource((triple\"p").head)
+        val o = Resource((triple\"o").head)
+        pop.addLine(s, p, o)
+      }
+      pop
+    }
+  }
+}
+
+class PopularityLight(pred:Predicate, popLabel:String) extends Popularity {
+  addLine(Candidate, pred, Target)
   label = popLabel
 
+  override def toXML =
+    <light>
+      <label>{label}</label>
+      <predicate>{pred}</predicate>
+    </light>
+
 }
 
-object SimplePopularity {
+object PopularityLight {
   /**
-   * Takes <measure> node and returns the corresponding PopularityMethod
+   * Takes <light> node and returns the corresponding Popularity
    * instance.
    */
-  def apply(measureNode : scala.xml.Node) : SimplePopularity= {
-    val pred = (measureNode\"predicate").text
+  def apply(lightNode : scala.xml.Node) : PopularityLight = {
+    val pred = (lightNode\"predicate").text
     val label =
-      if((measureNode\"label").isEmpty)
+      if((lightNode\"label").isEmpty)
         "popularity"
       else
-        (measureNode\"label").text
+        (lightNode\"label").text
 
-    new SimplePopularity(new Predicate(pred), label)
+    new PopularityLight(new Predicate(pred), label)
   }
 }
