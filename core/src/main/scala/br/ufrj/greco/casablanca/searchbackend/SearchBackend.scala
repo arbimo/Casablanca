@@ -1,0 +1,43 @@
+/**
+ * Copyright 2012 Arthur Bit
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+ 
+package br.ufrj.greco.casablanca.searchbackend
+
+trait SearchBackend {
+
+  /** Limit the size of the results.
+   *  This should be avoided not to miss pretinent results
+   */
+  val limit = " "
+
+  /**
+   * This function is an all in one to search for a term according to the 
+   * associated SearchProfile.
+   * It reutrns a sequence of results, ordered acording to their scores.
+   */
+  def search(searchTerm:String, profile:SearchProfile) : Seq[SearchResult]
+}
+
+object SearchBackend {
+
+  /**
+   * Returns a default SearchBackend that is supposed to be compatible 
+   * with every End Point.
+   */
+  def getDefault : SearchBackend = {
+    new BasicSparqlBackend
+  }
+}

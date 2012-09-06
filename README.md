@@ -17,12 +17,12 @@ Specific run instructions are provided in each module's README.
 
 ## Configuration 
 
-For both sub-modules to work properly, the environment variable `UFRJ_NED_CONF` should point to a directory containing the different profiles.
+For both sub-modules to work properly, the environment variable `CASABLANCA_PROFILES_DIR` should point to a directory containing the different profiles.
 
 Some are provided in `search-service/src/main/resources/profiles`
 
 ```
-$ export UFRJ_NED_CONF={PROJECT-DIR}/search-service/src/main/resources/profiles
+$ export CASABLANCA_PROFILES_DIR={PROJECT-DIR}/search-service/src/main/resources/profiles
 ```
 ## Further documentation
 

@@ -2,44 +2,44 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
                              http://maven.apache.org/maven-v4_0_0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+  <modelVersion>4.0.0</modelVersion>
 
-    <groupId>br.ufrj.ned</groupId>
-    <artifactId>ned-root</artifactId>
-    <packaging>pom</packaging>
-    <version>1.0</version>
-    <name>UFRJ NED parent project</name>
+  <groupId>br.ufrj.greco.casablanca</groupId>
+  <artifactId>root</artifactId>
+  <packaging>pom</packaging>
+  <version>1.0</version>
+  <name>Casablanca - Root</name>
 
-    <modules>
-        <module>search-service</module>
-        <module>rest-api</module>
-    </modules>
+  <modules>
+    <module>core</module>
+    <module>rest</module>
+  </modules>
 
-    <build>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-compiler-plugin</artifactId>
-                    <configuration>
-                        <source>1.5</source>
-                        <target>1.5</target>
-                    </configuration>
-                </plugin>
-            </plugins>
-        </pluginManagement>
-    </build>
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <configuration>
+            <source>1.5</source>
+            <target>1.5</target>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
 
-    <dependencies>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>3.8.1</version>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>3.8.1</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
 
-    <properties>
-      <scala.version>2.9.1</scala.version>
-    </properties>
+  <properties>
+    <scala.version>2.9.1</scala.version>
+  </properties>
 </project>
