@@ -41,6 +41,7 @@ object Resource {
       case "Predicate" => new Predicate(node.text)
       case "Variable" => new Variable(node.text)
       case "Target" => Target
+      case x => throw new Exception("resource id "+x+"is unknown")
     }
   }
   

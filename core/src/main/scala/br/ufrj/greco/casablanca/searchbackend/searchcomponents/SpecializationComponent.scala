@@ -20,7 +20,7 @@ import br.ufrj.greco.casablanca.searchbackend._
 import br.ufrj.greco.casablanca.searchbackend.resources._
 
 trait SpecializationComponent extends SearchComponent {
-
+  
   def toSparql(candidate:Variable):String = {
     var str = 
       if(optional) 
@@ -29,9 +29,9 @@ trait SpecializationComponent extends SearchComponent {
         " { "
       
     for(l <- lines)
-      result match {
-        case Some(resVar) =>
-          str += l.toSparql(candidate, resVar)
+      target match {
+        case Some(targetVar) =>
+          str += l.toSparql(candidate, targetVar)
         case None =>
           str += l.toSparql(candidate, new Variable(""))
       }

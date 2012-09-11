@@ -20,15 +20,27 @@ import br.ufrj.greco.casablanca.searchbackend._
 import br.ufrj.greco.casablanca.searchbackend.resources._
 
 
-class Popularity extends SpecializationComponent {
-
+class Popularity(treatmentID:String) extends SpecializationComponent {
+  def this() { this("Min") }
+  
   val result = Some(new Variable(key))
+  val target = treatmentID match {
+    case "No" => result //target and result identical
+    case _    => Some(new Variable(SearchComponent.getFreeID))
+  }
+  
+  private val treatment = ResultTreatment(result.get, target.get, treatmentID)
+  
+  val selectString = treatment.selectString
+  val groupBy = treatment.groupBy
+  
   override val optional = true
   var label = "popularity"
 
   def toXML =
     <full>
       <label>{label}</label>
+      <treatment>{treatment.ID}</treatment>
       {for(l <- lines) yield l.toXML}
     </full>
 }
@@ -36,10 +48,16 @@ class Popularity extends SpecializationComponent {
 object Popularity {
 
   def apply(node : xml.Node) : Popularity = {
+    println(node)
     if(node.label == "light")
       PopularityLight(node)
     else {
-      val pop = new Popularity
+      val pop =
+        if(node\"treatment" isEmpty)
+          new Popularity
+        else
+          new Popularity((node\"treatment").text)
+        
       pop.label = 
         if(node\"label" isEmpty)
           "popularity"
@@ -52,6 +70,7 @@ object Popularity {
         val o = Resource((triple\"o").head)
         pop.addLine(s, p, o)
       }
+      println(pop.lines)
       pop
     }
   }

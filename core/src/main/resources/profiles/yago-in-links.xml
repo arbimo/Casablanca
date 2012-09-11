@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<profile>
+  <name>YAGO2 : number of triples with the candidate as object -> popularity</name>
+  <end-point>
+    <url>http://localhost:3030/Yago/query</url>
+  </end-point>
+  <search>
+    <search-predicate>
+      <uri>yago:hasPreferredName</uri>
+      <weight>50</weight>
+    </search-predicate>
+    <search-predicate>
+      <uri>rdfs:label</uri>
+      <weight>25</weight>
+    </search-predicate>
+  </search>
+  <popularities>
+    <full>
+      <label>In graph mentions</label>
+      <treatment>Count</treatment>
+      <triple>
+        <s type="Target"/>
+        <p type="Variable">tmp</p>
+        <o type="Candidate"/>
+      </triple>
+    </full>
+  </popularities>
+</profile>

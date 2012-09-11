@@ -22,7 +22,22 @@ import scala.collection.mutable.ArrayBuffer
 
 trait SearchComponent {
 
+  /**
+   * Contains the variable that would store the result after their
+   * treatment (i.e. after the application of a COUNT ...)
+   * 
+   * None if no results are expected (this is the case for Constraints
+   */
   val result : Option[Variable]
+  
+  /**
+   * Contains the variable that would the temporary results (i.e. the one
+   * that would be used as a base for treatment such as COUNT or AVG)
+   * 
+   * None if no such variable is required.
+   */
+  val target : Option[Variable]
+
   val key = SearchComponent.getFreeID
   val optional = false
   var lines = new ArrayBuffer[SparqlLine]()
@@ -31,6 +46,17 @@ trait SearchComponent {
     val line = new SparqlLine(s, p, o)
     lines += line
   }
+  
+  /**
+   * Should this appear in the GROUP BY clause
+   */
+  val groupBy : Boolean
+  
+  /**
+   * How should this appear in the select clause.
+   * Empty String if no result is to be retrieved
+   */
+  val selectString : String
 }
 
 object SearchComponent {

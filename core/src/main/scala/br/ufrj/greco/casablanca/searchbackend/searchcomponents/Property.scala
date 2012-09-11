@@ -21,15 +21,27 @@ import br.ufrj.greco.casablanca.searchbackend.resources._
 
 
 
-class Property extends SpecializationComponent {
-
+class Property(treatmentID:String) extends SpecializationComponent {
+  def this() { this("No") }
+  
   val result = Some(new Variable(key))
+  val target = treatmentID match {
+    case "No" => result //target and result identical
+    case _    => Some(new Variable(SearchComponent.getFreeID))
+  }
+  
+  private val treatment = ResultTreatment(result.get, target.get, treatmentID)
+  
+  val selectString = treatment.selectString
+  val groupBy = treatment.groupBy
+
   override val optional = true
   var label = "property"
 
   def toXML =
     <full>
       <label>{label}</label>
+      <treatment>{treatment.ID}</treatment>
       {for(l <- lines) yield l.toXML}
     </full>
 }
@@ -40,7 +52,12 @@ object Property {
     if(node.label == "light")
       PropertyLight(node)
     else {
-      val prop = new Property
+      val prop = 
+        if(node\"treatment" isEmpty)
+          new Property
+        else
+          new Property((node\"treatment").text)
+
       prop.label = (node\"label").text
       for(triple <- node\"triple") {
         val s = Resource((triple\"s").head)

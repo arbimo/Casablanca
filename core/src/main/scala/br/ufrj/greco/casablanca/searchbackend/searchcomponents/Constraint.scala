@@ -23,6 +23,9 @@ import br.ufrj.greco.casablanca.searchbackend.resources._
 class Constraint extends SpecializationComponent {
 
   val result = None
+  val target = None
+  val groupBy = false
+  val selectString = ""
 
   def toXML =
     <full>

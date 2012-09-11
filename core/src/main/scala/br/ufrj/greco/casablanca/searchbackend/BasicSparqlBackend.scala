@@ -86,8 +86,14 @@ class BasicSparqlBackend extends SearchBackend with Logging {
         candidates.setScore(uri, "match", oldScore + pred.weight)
 
         for(key <- sol.varNames) {
-          if(popularitiesMap.contains(key))
-            candidates.setScore(uri, key, sol.getLiteral(key).getFloat)
+          if(popularitiesMap.contains(key)) {
+            try {
+              candidates.setScore(uri, key, sol.getLiteral(key).getFloat)
+            } catch {
+              case _ => log.error("Unable to convert score to float."+
+                "A Popularity measure might return a non-numeric result")
+            }
+          }
           else if(propKeys.contains(key))
             candidates.addProp(uri, key, sol.get(key).toString)
         }
@@ -116,7 +122,7 @@ class BasicSparqlBackend extends SearchBackend with Logging {
 
     /* Add the popularities and properties keys */
     for(spec <- profile.specialization ; if(spec.result != None))
-      structBegin += spec.result.get.toSparql + " "
+      structBegin += spec.selectString + " "
 
     structBegin += " WHERE { "
     
@@ -139,7 +145,14 @@ class BasicSparqlBackend extends SearchBackend with Logging {
         body += " UNION "
     }
     
-    var structEnd = " } "
+    var structEnd = " } GROUP BY "
+    /* add the predicate keys */
+    for(p <- profile.predicates.values)
+      structEnd += "?" + p.key + " "
+
+    /* Add the popularities and properties keys */
+    for(spec <- profile.specialization ; if(spec.groupBy))
+      structEnd += " ?"+spec.key 
     
     var query = structBegin + body + structEnd + limit
 
