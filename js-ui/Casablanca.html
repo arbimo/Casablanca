@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Casablanca</title>
+
+    <!-- Bootstrap -->
+    <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+      body {
+        padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+      }
+      section {
+        display: none;
+      }
+      .active {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+
+  	<div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </a>
+          <a class="brand" href="#">Casablanca</a>
+          <div class="nav-collapse collapse">
+            <ul class="nav">
+              <li class="active"><a href="#">Home</a></li>
+              <li><a href="#about">About</a></li>
+              <li><a href="#contact">Contact</a></li>
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+
+      
+
+      <div class="span3 bs-docs-sidebar">
+        <ul class="nav nav-list bs-docs-sidenav">
+          <li><a href="#server-choice"><i class="icon-chevron-right"></i> Server choice</a></li>
+          <li><a href="#profile-choice"><i class="icon-chevron-right"></i> Profiles</a></li>
+          <li><a href="#ne-search"><i class="icon-chevron-right"></i> Search</a></li>
+        </ul>
+      </div>
+
+
+        <div class="span9">
+          <div id="alert-container">
+          </div>
+
+      <section id="about">
+
+		      <h2>About</h2>
+		      <p>Casablanca is part of a Scientific Initiation project at UFRJ (Universidade Federal do Rio de Janeiro.</p>
+          <p>It is distrubuted under the Apache 2.0 license.</p>
+          <p>For more information and build/install instruction have a look on the project's <a href="#">github page</a>.</p>
+		  </section>
+
+      <section id="home" class="active">
+          <h2>Casablanca</h2>
+          <p>Welcome to Casablanca, we hope you'll enjoy the show !</p>
+      </section>
+
+		  <section id="contact">
+
+		      <h2>Contact information</h2>
+		      <p>I'm Arthur, you can contact me at <a href="mailto:arthur.bitmonnot@gmail.com">arthur.bitmonnot@gmail.com</a></p>
+
+		  </section>
+
+      <section id="server-choice">
+
+          <h2>Server Selection</h2>
+          <p>Please give us the address of the Casablanca Web Service</p>
+          <form name="server-info" class="form-inline">
+              <input type="text" id="server-url-text" class="input-xlarge" placeholder="Server URL" value="http://localhost:9998/casablanca"/>
+              <input class="btn" id="server-url-but" type="submit" value="Submit"/>
+          </form>
+
+      </section>
+
+      <section id="profile-choice">
+
+          <h2>Profile Selection</h2>
+          <div id="profiles-div">
+            <p>Sorry no profiles are available right now. Make sure you sure you selected <a href="#server-choice">Casablanca server</a></p>
+          </div>
+
+      </section>
+
+      <section id="ne-search">
+
+          <h2>Search for Named Entities</h2>
+          <form class="form-search">
+            <input id="search-text" type="text" class="input-medium search-query">
+            <button id="search-but" type="submit" class="btn">Search</button>
+          </form>
+          <div id="search-result-div">
+            
+          </div>
+      </section>
+      </div>
+
+    </div>
+
+    <script src="jquery-1.8.1.min.js"></script>
+    <script src="bootstrap/js/bootstrap.min.js"></script>
+    <script src="mustache.js"></script>
+
+    <script id="profilesTableTpl" type="text/template">
+      <table id="profiles-table" class="table">
+        <tbody>
+        {{#profiles}}
+          <tr>
+            <td>{{name}}</td>
+            <td><button class="btn btn-info btn-small" value={{id}}>Info</button></td>
+            <td><button class="btn btn-primary btn-small profile-choice-btn" value={{id}}>Choose</button></td>
+          </tr>
+        {{/profiles}}
+        </tbody>
+      </table>
+    </script>
+
+    <script id="searchResultsTpl" type="text/template">
+      <table id="results-table" class="table">
+        <tbody>
+          <tr>
+            <th>Score</th>
+            <th>Entity</th>
+            <th>Info</th>
+          </tr>
+          {{#search-result}}
+          <tr>
+            <td>{{global-score}}</td>
+            <td><a href={{uri}}>{{uri}}</td>
+            <td><button  
+                  id={{id}}
+                  class="candidate-info btn btn-info btn-small" 
+                  rel="popover" 
+                  onmouseover="$(this).popover('show');"
+                  onmouseout="$(this).popover('hide');">Info</button></td>
+          </tr>
+          {{/search-result}}
+        </tbody>
+      </table>
+    </script>
+
+    <script id="candidateDetailsTpl" type="text/template">
+      <b>Scores</b><br/>
+      {{#scores.score}}
+      <i>{{label}}:</i> {{value}}<br/>
+      {{/scores.score}}
+
+      <b>Properties</b><br/>
+      {{#properties.property}}
+      <i>{{name}}:</i> {{value}}<br/>
+      {{/properties.property}}
+    </script>
+
+    <script id="alertTpl" type="text/template">
+      <div class="alert alert-block">
+
+        <button type="button" class="close" data-dismiss="alert"><i class="icon-remove"></i></button>
+        <strong>Warning!</strong> {{.}}
+      </div>
+    </script>
+
+
+    <script type="text/javascript">
+
+
+      window.model = {
+        casablancaServer: undefined,
+        profiles: [],
+        currentProfile: undefined,
+        searchResults: undefined,
+
+        setServer: function(url){
+          console.log("> setServer : " + url)
+          if(url[url.length-1] === '/')
+            model.casablancaServer = url
+          else 
+            model.casablancaServer = url + '/'
+          model.setProfiles([]);
+          controler.retrieveProfiles()
+        },
+
+        setProfiles: function(rawProfiles){
+          console.log("> setProfiles");
+          model.profiles = rawProfiles;
+          controler.profilesUpdated(model.profiles);
+        },
+
+        profilesURL: function(){
+          return model.casablancaServer + "profiles"
+        }, 
+
+        searchURL: function(searchTerm){
+          return model.casablancaServer + "search/" + searchTerm + "?profile=" + model.currentProfile
+        },
+
+        setCurrentProfile: function(id){
+          model.currentProfile = id
+          controler.profileChoosen(id)
+        },
+
+        setCurrentSearch: function(searchTerm){
+          model.currentSearch = searchTerm
+          controler.newSearch(searchTerm)
+        },
+
+        setSearchResults: function(data){
+          console.log("> setSearchResults")
+          console.log(data)
+          if(data.search.term == model.currentSearch) {
+            model.searchResults = data.search
+            console.log(model.searchResults)
+            $.each(model.searchResults["search-result"], function(index, value){
+              value.id = index
+            })
+            console.log(model.searchResults["search-result"])
+            controler.searchResultsUpdated(model.searchResults)
+          } else {
+            console.log("Received search result ("+data.search.term+
+              ") doesn't match with the current search ("+model.currentSearch+")")
+          }
+        },
+
+        getResultByID: function(id){
+          return model.searchResults["search-result"][id]
+        },
+      }
+
+      window.controler = {
+
+        /***** Error handling *****/
+        cantRetrieveProfiles: function(jqXHR, textStatus, errorThrown) {
+          console.log(jqXHR)
+          console.log(textStatus)
+          console.log(errorThrown)
+          var template = $("#alertTpl").html()
+          var html = Mustache.to_html(template, "Unable to retrieve profiles on the specified Casablanca Web Service. "+
+            "Please make sure the specified URL is valid.")
+          $("#alert-container").html(html)
+        },
+
+        retrieveProfiles: function(){
+          console.log("> retrieveProfiles");
+          $.ajax({
+            url: model.profilesURL(),
+            success: controler.gotProfiles,
+            error: controler.cantRetrieveProfiles,
+            dataType: "json"
+          })
+          //$.getJSON(window.model.profilesURL(), window.controler.gotProfiles)
+        },
+
+        gotProfiles: function(json){
+          console.log("> gotProfiles");
+          model.setProfiles(json.profiles.profile);
+        },
+
+        profilesUpdated: function(profArray){
+          console.log("> profilesUpdated")
+          console.log(profArray);
+          var div = $("#profiles-div");
+          div.empty();
+          if(profArray.length == 0) {
+            console.log("No profiles availables");
+            div.append($("<p>No profiles availables</p>"));
+          } else {
+            console.log(""+profArray.length+ " profiles availables");
+            var data = { profiles: profArray }
+            var template = $("#profilesTableTpl").html()
+            var html = Mustache.to_html(template, data)
+            $("#profiles-div").html(html)
+            $(".profile-choice-btn").click(function(){
+                console.log(this)
+                controler.chooseProfile($(this).val())})
+          }
+          location.hash = "profile-choice"
+        },
+
+        profileChoosen: function(id){
+          location.hash = "ne-search"
+        },
+
+        searchResultsUpdated: function(res){
+          console.log("> searchResultsUpdated")
+          var div = $("#search-result-div")
+          console.log(res)
+          var template = $("#searchResultsTpl").html()
+          var html = Mustache.to_html(template, res)
+          div.html(html)
+          $(".candidate-info").each(function(){
+            var elem = $(this)
+            elem.popover({
+              title: "Additional information",
+              content: controler.getCandidateAddInfo(elem.attr("id")),
+              offset: 10,
+              html: true,
+              placement: "left"
+            })})
+        },
+
+        getCandidateAddInfo: function(id){
+          var template = $("#candidateDetailsTpl").html()
+          var html = Mustache.to_html(template, model.getResultByID(id))
+          return html
+        },
+
+        chooseProfile: function(id){
+          console.log("Choosing profile : " + id);
+          model.setCurrentProfile(id)
+        },
+
+        displayInfoOnProfile: function(id){
+          console.log("Please show info on profile : " + id);
+        },
+
+        search: function(searchTerm){
+          console.log("> search : " + searchTerm)
+          model.setCurrentSearch(searchTerm)
+          $.getJSON(model.searchURL(searchTerm), controler.gotSearchResults)
+        },
+
+        newSearch: function(searchTerm){
+          $("#search-result-div").empty()
+        },
+
+        gotSearchResults: function(results){
+          console.log("> gotSearchResults")
+          console.log(results)
+          model.setSearchResults(results)
+        }
+
+      }
+
+      /** Change the view on hash change */
+      $(window).bind("hashchange", function(event) {
+        var hash = window.location.hash;
+        console.log(hash);
+        if(hash == false) hash = "#home";
+        $(".active").removeClass("active");
+        $(hash).addClass("active");
+      });
+
+      /** Change the server on the change server button */
+      $("#server-url-but").click(function() {
+        model.setServer($("#server-url-text").val())
+        console.log(model.profilesURL())
+      })
+
+      $("#search-but").click(function(){
+        controler.search($("#search-text").val())
+      })
+
+      /** Always start on home view */
+      $(function(){
+        location.hash = ""
+      });
+
+		</script>
+
+
+
+  </body>
+</html>
