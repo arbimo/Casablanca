@@ -59,14 +59,21 @@
       <section id="about">
 
 		      <h2>About</h2>
-		      <p>Casablanca is part of a Scientific Initiation project at UFRJ (Universidade Federal do Rio de Janeiro.</p>
-          <p>It is distrubuted under the Apache 2.0 license.</p>
-          <p>For more information and build/install instruction have a look on the project's <a href="#">github page</a>.</p>
+
+		      <p>Casablanca is part of a Scientific Initiation project at UFRJ (Universidade Federal do Rio de Janeiro). It is distrubuted under the Apache 2.0 license.</p>
+          
+          <p>For more information and build/install instruction have a look on the project's 
+            <a href="https://github.com/athy/Casablanca" target="_blank">github page</a>.</p>
 		  </section>
 
       <section id="home" class="active">
           <h2>Casablanca</h2>
-          <p>Welcome to Casablanca, we hope you'll enjoy the show !</p>
+
+          <p>Semantic Web Annotation is the process of mapping ambiguous named entities that appears in free-text to universal identiers, typically made available by a Linked Data provider such as DBpedia or Freebase. This remains a time consuming process, as it is usually performed by human experts with little or no computational assistance.</p>
+          
+          <p>Casablanca is a tool built in order to make Semantic Web Annotation an accessible process for any dataset. Casablanca's approach is to request a minimal configuration describing a dataset. It then provides unied programming and user interfaces to realize annotation based on this conguration. To perform the necessary disambiguation between named entities, Casablanca relies on existing data available in the targeted dataset.</p>
+
+          <p><a href="#server-choice" class="btn">Get started</a></p>
       </section>
 
 		  <section id="contact">
@@ -121,7 +128,7 @@
         {{#profiles}}
           <tr>
             <td>{{name}}</td>
-            <td><button class="btn btn-info btn-small" value={{id}}>Info</button></td>
+            <td><a class="btn btn-info btn-small" href={{link}} target="_blank">Details</button></td>
             <td><button class="btn btn-primary btn-small profile-choice-btn" value={{id}}>Choose</button></td>
           </tr>
         {{/profiles}}
@@ -195,7 +202,11 @@
 
         setProfiles: function(rawProfiles){
           console.log("> setProfiles");
+          console.log(rawProfiles)
           model.profiles = rawProfiles;
+          $.each(model.profiles, function(index, elem){
+            elem.link = model.profilesURL() + "/" + elem.id
+          })
           controler.profilesUpdated(model.profiles);
         },
 
