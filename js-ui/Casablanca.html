@@ -4,7 +4,7 @@
     <title>Casablanca</title>
 
     <!-- Bootstrap -->
-    <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <style>
       body {
         padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
@@ -12,8 +12,11 @@
       section {
         display: none;
       }
-      .active {
+      .active-view {
         display: block;
+      }
+      .input-xxlarge{
+        width:410px
       }
     </style>
   </head>
@@ -30,7 +33,7 @@
           <a class="brand" href="#">Casablanca</a>
           <div class="nav-collapse collapse">
             <ul class="nav">
-              <li class="active"><a href="#">Home</a></li>
+              <li class="active-view"><a href="#">Home</a></li>
               <li><a href="#about">About</a></li>
               <li><a href="#contact">Contact</a></li>
             </ul>
@@ -46,15 +49,15 @@
       <div class="span3 bs-docs-sidebar">
         <ul class="nav nav-list bs-docs-sidenav">
           <li><a href="#server-choice"><i class="icon-chevron-right"></i> Server choice</a></li>
-          <li><a href="#profile-choice"><i class="icon-chevron-right"></i> Profiles</a></li>
-          <li><a href="#ne-search"><i class="icon-chevron-right"></i> Search</a></li>
+          <li><a href="#profiles"><i class="icon-chevron-right"></i> Profiles</a></li>
+          <li><a href="#search"><i class="icon-chevron-right"></i> Search</a></li>
         </ul>
       </div>
 
 
-        <div class="span9">
-          <div id="alert-container">
-          </div>
+      <div class="span9">
+        <div id="alert-container">
+      </div>
 
       <section id="about">
 
@@ -66,7 +69,7 @@
             <a href="https://github.com/athy/Casablanca" target="_blank">github page</a>.</p>
 		  </section>
 
-      <section id="home" class="active">
+      <section id="home" class="active-view">
           <h2>Casablanca</h2>
 
           <p>Semantic Web Annotation is the process of mapping ambiguous named entities that appears in free-text to universal identiers, typically made available by a Linked Data provider such as DBpedia or Freebase. This remains a time consuming process, as it is usually performed by human experts with little or no computational assistance.</p>
@@ -94,23 +97,85 @@
 
       </section>
 
-      <section id="profile-choice">
 
-          <h2>Profile Selection</h2>
+
+
+      <section id="profiles">
+
+          <h2>Profile Selection<button class="btn btn-info btn-small pull-right" id="reload-profiles">Reload</button></h2>
           <div id="profiles-div">
             <p>Sorry no profiles are available right now. Make sure you sure you selected <a href="#server-choice">Casablanca server</a></p>
           </div>
 
       </section>
 
-      <section id="ne-search">
+
+
+      <section id="profile-edit">
+
+        <h2>Profile creation
+          <button id="show-profile" class="btn pull-right">Show</button>
+          <button id="submit-profile" class="btn pull-right">Submit</button>
+        </h2>
+        <div class="tabbable"> <!-- Only required for left/right tabs -->
+
+          <ul class="nav nav-tabs">
+            <li class="active"><a href="#prof-desc-tab" data-toggle="tab">Description</a></li>
+            <li><a href="#search-tab" data-toggle="tab">Search</a></li>
+            <li><a href="#properties-tab" data-toggle="tab">Properties</a></li>
+          </ul>
+
+          <div class="tab-content">
+            <div class="tab-pane active" id="prof-desc-tab">
+            </div>
+            
+            <div class="tab-pane" id="search-tab">
+              <div id="search-predicates"></div>
+              <button class="btn btn-large btn-block" type="button" id="new-search-predicate">Add new search predicate</button>
+            </div>
+
+            <div class="tab-pane" id="properties-tab">
+              <div>
+
+
+        <legend>Property  
+          <select id="pConf">
+            <option value="light" selected>Light Configuration</option>
+            <option value="full">Full Configuration</option>
+          </select>
+          <button id="delete-property" class="close pull-right">&times;</button>
+        </legend>
+        <form class="form-horizontal search-pred">
+          <div class="control-group">
+            <label class="control-label" for="pPred">Label</label>
+            <div class="controls">
+              <input type="text" id="pPred" placeholder="Name to appear" class="input-xlarge">
+            </div>
+          </div>
+          <div class="control-group">
+            <label class="control-label" for="pPred">Predicate</label>
+            <div class="controls">
+              <input type="text" id="pPred" placeholder="Predicate to retrieve the property" class="input-xxlarge">
+            </div>
+          </div>
+        </form>  
+      </div>
+            </div>
+          </div>
+        </div>
+          
+      </section>
+
+
+
+      <section id="search-view">
 
           <h2>Search for Named Entities</h2>
           <form class="form-search">
             <input id="search-text" type="text" class="input-medium search-query">
             <button id="search-but" type="submit" class="btn">Search</button>
           </form>
-          <div id="search-result-div">
+          <div id="search-results-div">
             
           </div>
       </section>
@@ -118,9 +183,14 @@
 
     </div>
 
-    <script src="jquery-1.8.1.min.js"></script>
-    <script src="bootstrap/js/bootstrap.min.js"></script>
-    <script src="mustache.js"></script>
+    <script src="lib/jquery-1.8.1.min.js"></script>
+    <script src="lib/underscore.js"></script>
+    <script src="lib/backbone-min.js"></script>
+    <script src="lib/bootstrap/js/bootstrap.min.js"></script>
+    <script src="lib/handlebars-1.0.0.beta.6.js"></script>
+
+    <script src="profile-edit.js"></script>
+    <script src="main.js"></script>
 
     <script id="profilesTableTpl" type="text/template">
       <table id="profiles-table" class="table">
@@ -128,7 +198,7 @@
         {{#profiles}}
           <tr>
             <td>{{name}}</td>
-            <td><a class="btn btn-info btn-small" href={{link}} target="_blank">Details</button></td>
+            <td><button class="btn btn-info btn-small profile-details-btn" value={{id}}>Details</button></td>
             <td><button class="btn btn-primary btn-small profile-choice-btn" value={{id}}>Choose</button></td>
           </tr>
         {{/profiles}}
@@ -181,207 +251,82 @@
     </script>
 
 
-    <script type="text/javascript">
+    <script id="profileDescriptionTpl" type="text/template">
+      <form class="form-horizontal">
+        <legend>Profile description</legend>
+        <div class="control-group">
+          <label class="control-label" for="pName">Name</label>
+          <div class="controls">
+            <input type="text" id="pName" class="input-xxlarge" placeholder="Name" value="{{name}}">
+          </div>
+        </div>
+        <div class="control-group">
+          <label class="control-label" for="pEndPoint">End Point</label>
+          <div class="controls">
+            <input type="text" id="pEndPoint" class="input-xxlarge" placeholder="End Point URL" value="{{endPoint.url}}">
+          </div>
+        </div>
+      </form>
+    </script>
 
+    <script id="searchPredicateTpl" type="text/template">
+      <div>
+        <legend>Candidate Selection <button id="delete-search-predicate" class="close pull-right">&times;</button></legend>
+        <form class="form-horizontal search-pred">
+          <div class="control-group">
+            <label class="control-label" for="pPred">Search Predicate</label>
+            <div class="controls">
+              <input type="text" id="pPred" placeholder="Predicate" class="input-xxlarge" value="{{uri}}">
+            </div>
+          </div>
+          <div class="control-group">
+            <label class="control-label" for="pSelMeth">Selection Method</label>
+            <div class="controls">
+              <select id="pSelMeth">
+                <option {{#equal "exact" method}}selected{{/equal}} value="exact">Exact</option>
+                <option {{#equal "partial" method}}selected{{/equal}} value="partial">Partial</option>
+                <option {{#equal "contains" method}}selected{{/equal}} value="contains">Contains</option>
+              </select>
+            </div>
+          </div>
+          <div class="control-group">
+            <label class="control-label" for="pWeight">Weight</label>
+            <div class="controls">
+              <input type="text" id="pWeight" placeholder="Weight" value="{{weight}}">
+            </div>
+          </div>
+          <div class="control-group">
+            <label class="control-label" for="pLang">Language Tag</label>
+            <div class="controls">
+              <input type="text" class="input-mini" id="pLang" placeholder="en" value="{{language}}">
+            </div>
+          </div>
+        </form>  
+      </div>
+    </script>
 
-      window.model = {
-        casablancaServer: undefined,
-        profiles: [],
-        currentProfile: undefined,
-        searchResults: undefined,
-
-        setServer: function(url){
-          console.log("> setServer : " + url)
-          if(url[url.length-1] === '/')
-            model.casablancaServer = url
-          else 
-            model.casablancaServer = url + '/'
-          model.setProfiles([]);
-          controler.retrieveProfiles()
-        },
-
-        setProfiles: function(rawProfiles){
-          console.log("> setProfiles");
-          console.log(rawProfiles)
-          model.profiles = rawProfiles;
-          $.each(model.profiles, function(index, elem){
-            elem.link = model.profilesURL() + "/" + elem.id
-          })
-          controler.profilesUpdated(model.profiles);
-        },
-
-        profilesURL: function(){
-          return model.casablancaServer + "profiles"
-        }, 
-
-        searchURL: function(searchTerm){
-          return model.casablancaServer + "search/" + searchTerm + "?profile=" + model.currentProfile
-        },
-
-        setCurrentProfile: function(id){
-          model.currentProfile = id
-          controler.profileChoosen(id)
-        },
-
-        setCurrentSearch: function(searchTerm){
-          model.currentSearch = searchTerm
-          controler.newSearch(searchTerm)
-        },
-
-        setSearchResults: function(data){
-          console.log("> setSearchResults")
-          console.log(data)
-          if(data.search.term == model.currentSearch) {
-            model.searchResults = data.search
-            console.log(model.searchResults)
-            $.each(model.searchResults["search-result"], function(index, value){
-              value.id = index
-            })
-            console.log(model.searchResults["search-result"])
-            controler.searchResultsUpdated(model.searchResults)
-          } else {
-            console.log("Received search result ("+data.search.term+
-              ") doesn't match with the current search ("+model.currentSearch+")")
-          }
-        },
-
-        getResultByID: function(id){
-          return model.searchResults["search-result"][id]
-        },
-      }
-
-      window.controler = {
-
-        /***** Error handling *****/
-        cantRetrieveProfiles: function(jqXHR, textStatus, errorThrown) {
-          console.log(jqXHR)
-          console.log(textStatus)
-          console.log(errorThrown)
-          var template = $("#alertTpl").html()
-          var html = Mustache.to_html(template, "Unable to retrieve profiles on the specified Casablanca Web Service. "+
-            "Please make sure the specified URL is valid.")
-          $("#alert-container").html(html)
-        },
-
-        retrieveProfiles: function(){
-          console.log("> retrieveProfiles");
-          $.ajax({
-            url: model.profilesURL(),
-            success: controler.gotProfiles,
-            error: controler.cantRetrieveProfiles,
-            dataType: "json"
-          })
-          //$.getJSON(window.model.profilesURL(), window.controler.gotProfiles)
-        },
-
-        gotProfiles: function(json){
-          console.log("> gotProfiles");
-          model.setProfiles(json.profiles.profile);
-        },
-
-        profilesUpdated: function(profArray){
-          console.log("> profilesUpdated")
-          console.log(profArray);
-          var div = $("#profiles-div");
-          div.empty();
-          if(profArray.length == 0) {
-            console.log("No profiles availables");
-            div.append($("<p>No profiles availables</p>"));
-          } else {
-            console.log(""+profArray.length+ " profiles availables");
-            var data = { profiles: profArray }
-            var template = $("#profilesTableTpl").html()
-            var html = Mustache.to_html(template, data)
-            $("#profiles-div").html(html)
-            $(".profile-choice-btn").click(function(){
-                console.log(this)
-                controler.chooseProfile($(this).val())})
-          }
-          location.hash = "profile-choice"
-        },
-
-        profileChoosen: function(id){
-          location.hash = "ne-search"
-        },
-
-        searchResultsUpdated: function(res){
-          console.log("> searchResultsUpdated")
-          var div = $("#search-result-div")
-          console.log(res)
-          var template = $("#searchResultsTpl").html()
-          var html = Mustache.to_html(template, res)
-          div.html(html)
-          $(".candidate-info").each(function(){
-            var elem = $(this)
-            elem.popover({
-              title: "Additional information",
-              content: controler.getCandidateAddInfo(elem.attr("id")),
-              offset: 10,
-              html: true,
-              placement: "left"
-            })})
-        },
-
-        getCandidateAddInfo: function(id){
-          var template = $("#candidateDetailsTpl").html()
-          var html = Mustache.to_html(template, model.getResultByID(id))
-          return html
-        },
-
-        chooseProfile: function(id){
-          console.log("Choosing profile : " + id);
-          model.setCurrentProfile(id)
-        },
-
-        displayInfoOnProfile: function(id){
-          console.log("Please show info on profile : " + id);
-        },
-
-        search: function(searchTerm){
-          console.log("> search : " + searchTerm)
-          model.setCurrentSearch(searchTerm)
-          $.getJSON(model.searchURL(searchTerm), controler.gotSearchResults)
-        },
-
-        newSearch: function(searchTerm){
-          $("#search-result-div").empty()
-        },
-
-        gotSearchResults: function(results){
-          console.log("> gotSearchResults")
-          console.log(results)
-          model.setSearchResults(results)
-        }
-
-      }
-
-      /** Change the view on hash change */
-      $(window).bind("hashchange", function(event) {
-        var hash = window.location.hash;
-        console.log(hash);
-        if(hash == false) hash = "#home";
-        $(".active").removeClass("active");
-        $(hash).addClass("active");
-      });
-
-      /** Change the server on the change server button */
-      $("#server-url-but").click(function() {
-        model.setServer($("#server-url-text").val())
-        console.log(model.profilesURL())
-      })
-
-      $("#search-but").click(function(){
-        controler.search($("#search-text").val())
-      })
-
-      /** Always start on home view */
-      $(function(){
-        location.hash = ""
-      });
-
-		</script>
-
-
+    <script type="text/xml" id="profileXMLTpl">
+      <profile>
+        <name>{{description.name}}</name>
+        <end-point>
+          <url>{{description.endPoint.url}}</url>
+        </end-point>
+        <search>
+          {{#searchPredicates}}
+          <search-predicate>
+            <uri>{{uri}}</uri>
+            <method>{{method}}</method>
+            {{#equal "contains" method}}<contains-uri>bif:contains</contains-uri>{{/equal}}
+            {{#if weight}}<weight>{{weight}}</weight>{{/if}}
+            {{#if language}}<language>{{language}}</language>{{/if}}
+          </search-predicate>
+          {{/searchPredicates}}
+        </search>
+        <popularities></popularities>
+        <constraints></constraints>
+        <properties></properties>
+      </profile>
+    </script>
 
   </body>
 </html>
