@@ -17,6 +17,7 @@
 package br.ufrj.greco.casablanca.restapi
 
 import javax.ws.rs._
+import javax.ws.rs.core.Response
 import br.ufrj.greco.casablanca.searchbackend._
 import br.ufrj.greco.casablanca.profilemanager._
 import br.ufrj.greco.casablanca.exceptions._
@@ -35,5 +36,15 @@ class AddProfile extends WebService {
       case e:InvalidProfileException =>
         throw new InvalidProfileWebException
     }
+  }
+  
+  @OPTIONS
+  @Consumes(Array("text/xml"))
+  def addProfile_OPTIONS(xmlString:String) = {
+    Response.ok()
+    .header("Access-Control-Allow-Origin","*")
+    .header("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
+    .header("Access-Control-Allow-Headers", "Content-Type")
+    .build();
   }
 }

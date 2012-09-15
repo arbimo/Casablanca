@@ -23,5 +23,7 @@ import javax.ws.rs.core.Response.Status._
 
 class InvalidProfileWebException
   extends WebApplicationException (
-    Response.status(BAD_REQUEST).entity("Profile doesn't seems to be valid.")
+    Response.status(BAD_REQUEST)
+            .entity("Profile doesn't seems to be valid.")
+            .header("Access-Control-Allow-Origin","*")
             .`type`(MediaType.TEXT_PLAIN).build)

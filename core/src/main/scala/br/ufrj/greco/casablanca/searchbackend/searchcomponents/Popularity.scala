@@ -48,7 +48,6 @@ class Popularity(treatmentID:String) extends SpecializationComponent {
 object Popularity {
 
   def apply(node : xml.Node) : Popularity = {
-    println(node)
     if(node.label == "light")
       PopularityLight(node)
     else {
@@ -70,7 +69,6 @@ object Popularity {
         val o = Resource((triple\"o").head)
         pop.addLine(s, p, o)
       }
-      println(pop.lines)
       pop
     }
   }

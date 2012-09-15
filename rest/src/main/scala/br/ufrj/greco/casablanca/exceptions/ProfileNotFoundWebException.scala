@@ -23,6 +23,8 @@ import javax.ws.rs.core.Response.Status._
 
 class ProfileNotFoundWebException(profileId:Int) 
   extends WebApplicationException (
-    Response.status(BAD_REQUEST).entity("Requested profile wasn't found : " + profileId)
+    Response.status(BAD_REQUEST)
+            .entity("Requested profile wasn't found : " + profileId)
+            .header("Access-Control-Allow-Origin","*")
             .`type`(MediaType.TEXT_PLAIN).build)
 

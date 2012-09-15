@@ -25,6 +25,7 @@ class RemoteEndPointWebException(message:String)
   extends WebApplicationException (
     Response.status(INTERNAL_SERVER_ERROR)
             .entity("Error with the remote SPARQL End Point : "+message)
+            .header("Access-Control-Allow-Origin","*")
             .`type`(MediaType.TEXT_PLAIN)
             .build)
 
