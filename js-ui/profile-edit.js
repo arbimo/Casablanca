@@ -5,13 +5,11 @@ jQuery(function($){
     /** If an object in the attributes has a toJSON() method, call it.
      * This is only done on direct childs for performance reasons 
      */
-    toFullJSON: function(){
+    toJSON: function(){
       var attrs = _.clone(this.attributes)
       for (var key in attrs) {
-        if (attrs.hasOwnProperty(key)){
-          if(attrs[key].toFullJSON) {
-            attrs[key] = attrs[key].toFullJSON()
-          } else if(attrs[key].toJSON) {
+        if (attrs.hasOwnProperty(key) && attrs[key]){
+          if(attrs[key].toJSON) {
             attrs[key] = attrs[key].toJSON()
           }
         }
@@ -27,7 +25,7 @@ jQuery(function($){
       }
       this.destroy()
     },
-    
+
   })
 
   var MyCollection = Backbone.Collection.extend({
@@ -35,7 +33,8 @@ jQuery(function($){
       while(this.length > 0) {
         this.pop().clear()
       }
-    }
+    },
+
   })
 
 
@@ -64,14 +63,20 @@ jQuery(function($){
     },
 
     initialize: function() {
-      _.bindAll(this, 'render');
-      this.model.bind('change', this.render);
+      _.bindAll(this, "render", "remove", "refreshModel");
+      this.model.bind("change", this.render);
+      this.model.bind("destroy", this.remove)
 
       this.render()
     },
 
     render: function(){
-      $(this.el).html(this.template(this.model.toFullJSON()))
+      $(this.el).html(this.template(this.model.toJSON()))
+    },
+
+    remove: function(){
+      this.undelegateEvents()
+      $(this.el).empty()
     },
 
     refreshModel: function(){
@@ -100,21 +105,14 @@ jQuery(function($){
     xmlTemplate: Handlebars.compile($("#profileXMLTpl").html()),
 
     initialize: function(){
-
     },
-
-    newSearchPredicate: function(){
-      var spm = new SearchPredicateModel()
-      this.get("searchPredicates").add(spm)
-      var spv = new SearchPredicateView({model: spm})
-    },
-
 
     toXML: function(){
-      return this.xmlTemplate(this.toFullJSON())
+      return this.xmlTemplate(this.toJSON())
     },
 
     submit: function(){
+      console.log("Submiting profile : ", this.toXML())
       $.ajax({
         url: Cas.Server.profilesURL() + "add",
         type: "POST",
@@ -140,9 +138,21 @@ jQuery(function($){
       "click #show-profile": "log",
       "click #submit-profile": "submitProfile",
       "click #new-search-predicate": "newSearchPredicate",
+      "click #new-property": "newProperty"
+    },
+
+    initialize: function(){
+      _.bindAll(this, "remove")
+      this.model.bind("destroy", this.remove)
+    },
+
+    remove: function(){
+      this.undelegateEvents()
+      this.el = undefined
     },
 
     log: function(){
+      console.log("log json", this.model.toJSON())
       console.log("log xml", this.model.toXML())
     },
 
@@ -151,8 +161,16 @@ jQuery(function($){
     },
 
     newSearchPredicate: function(){
-      this.model.newSearchPredicate()
-    }
+      var spm = new SearchPredicateModel()
+      this.model.get("searchPredicates").add(spm)
+      var spv = new SearchPredicateView({model: spm})
+    },
+
+    newProperty: function(){
+      var pm = new PropertyModel()
+      this.model.get("properties").add(pm)
+      var pv = new PropertyView({model: pm})
+    },
   })
 
 
@@ -205,6 +223,7 @@ jQuery(function($){
     },
 
     remove: function(){
+      this.undelegateEvents()
       $(this.el).remove()
     },
 
@@ -218,6 +237,197 @@ jQuery(function($){
   })
 
 
+/************************* Triples ********************************/
+
+  window.TripleModel = MyModel.extend({
+    defaults: {
+      s: {
+        type: "Subject",
+      },
+      p: {
+        type: "Predicate",
+        value: "rdfs:label"
+      },
+      o: {
+        type: "Target"
+      },
+    },
+
+    initialize: function(){
+    },
+
+    render: function(){
+    }
+  })
+
+  window.TripleView = Backbone.View.extend({
+    tagName: "div",
+    id: "triple",
+
+    template: Handlebars.compile($("#tripleTpl").html()),
+
+    events: {
+      "click button": "destroy",
+      "change input": "parseDOM",
+      "change select": "parseDOM"
+    },
+
+    initialize: function(){
+      _.bindAll(this, "render", "attach", "remove", "destroy", "parseDOM")
+      this.model.bind("destroy", this.remove)
+      this.model.bind("change", this.render)
+      this.render()
+      this.attach()
+      this.model.parent.bind("redrawn", this.attach)
+    },
+
+    attach: function(){
+      this.parseDOM()
+      $(".property[cid|="+this.model.parent.cid+"]").find("#triples").append($(this.el))
+      this.render()
+    },
+
+    render: function(){
+      $(this.el).html(this.template(this.model.toJSON()))
+    },
+
+    remove: function(){
+      this.undelegateEvents()
+      $(this.el).remove()
+    },
+
+    destroy: function(){
+      this.model.destroy()
+    },
+
+    parseDOM: function(){
+      var triple = {
+        s: {
+          type: $(this.el).find("#sType").val(),
+          value: $(this.el).find("#sValue").val(),
+        },
+        p: {
+          type: $(this.el).find("#pType").val(),
+          value: $(this.el).find("#pValue").val(),
+        },
+        o: {
+          type: $(this.el).find("#oType").val(),
+          value: $(this.el).find("#oValue").val(),
+        }
+      }
+      this.model.set(triple)
+    }
+
+  })
+
+  window.TriplesColl = MyCollection.extend({
+    model: TripleModel,
+  })
+
+
+  /****************************** Properties ***********************************/
+
+  window.PropertyModel = MyModel.extend({
+    defaults: {
+      light: true,
+      treatment: "No",
+      triples: new TriplesColl()
+    },
+
+    initialize: function(){
+      _.bindAll(this, "addTriple")
+      this.set("triples", new TriplesColl())
+    },
+
+    addTriple: function(tripleModel){
+      tripleModel.parent = this
+      this.get("triples").add(tripleModel)
+      this.trigger("change")
+    },
+  })
+
+  window.PropertyView = Backbone.View.extend({
+    tagName: "div",
+    className: "property",
+
+    template: Handlebars.compile($("#propertyTpl").html()),
+
+    events: {
+      "click #delete-property": "destroy",
+      "click #add-triple": "addTriple",
+      "change input": "parseDOM",
+      "change select": "parseDOM",
+    },
+
+    initialize: function(){
+      $(this.el).attr("cid", this.model.cid)
+      _.bindAll(this, "parseDOM", "render", "destroy", "remove", "removeTriple", "addTriple")
+      this.model.bind("change", this.render)
+      this.model.bind("destroy", this.remove)
+      this.render()
+      $("#properties").append($(this.el))
+    },
+
+    parseDOM: function(){
+      var light = $(this.el).find("#pConf").val() == "light"
+      if(light) {
+        var label = $(this.el).find("#pLabel").val()
+        var predicate = $(this.el).find("#pPred").val()
+
+        this.model.set({
+          light: light,
+          label: label,
+          predicate: predicate,
+        })
+      }
+      else {
+        var label = $(this.el).find("#pLabel").val()
+        var treatment = $(this.el).find("#pTreatment").val()
+        this.model.set({
+          light: light,
+          label: label,
+          treatment: treatment,
+        })
+      }
+    },
+
+    render: function(){
+      $(this.el).find("#triples").detach()
+      $(this.el).html(this.template(this.model.toJSON()))
+      this.model.trigger("redrawn")
+    },
+
+    remove: function(){
+      this.undelegateEvents()
+      $(this.el).remove()
+    },
+
+    addTriple: function(){
+      var tm = new TripleModel()
+      tm.parent = this.model
+      new TripleView({model: tm})
+      this.model.addTriple(tm)
+    },
+
+    removeTriple: function(event){
+      var id = $(event.currentTarget).attr("value")
+      this.model.removeTriple(id)
+    },
+
+    destroy: function(){
+      this.model.destroy()
+    },
+
+  })
+
+  window.PropertiesColl = MyCollection.extend({
+    model: PropertyModel,
+  })
+
+
+
+
+  
 
 
 
@@ -234,7 +444,7 @@ jQuery(function($){
 
       var description = new ProfileDescriptionModel(json.description)
       new ProfileDescriptionView({model: description})
-      profileEdit.set("description", description)
+
 
       
       var searchPredicates = new SearchPredicateColl()
@@ -243,9 +453,33 @@ jQuery(function($){
         new SearchPredicateView({model: searchPredicate})
         searchPredicates.add(searchPredicate)
       })
-      profileEdit.set("searchPredicates", searchPredicates)
-      new ProfileEditView({model: profileEdit})
 
+      
+
+      var properties = new PropertiesColl()
+      $.each(json.properties, function(index, elem) {
+        var triples = elem.triples
+        var prop = new PropertyModel(elem)
+        new PropertyView({model: prop})
+        properties.add(prop)
+        if(triples)
+          $.each(triples, function(index, elem){
+            var triple = new TripleModel(elem)
+            triple.parent = prop
+            new TripleView({model: triple})
+            prop.addTriple(triple)
+          })
+
+      })
+
+
+      profileEdit.set({
+        description: description,
+        searchPredicates: searchPredicates,
+        properties: properties,
+      })
+
+      new ProfileEditView({model: profileEdit})
       return profileEdit
     },
 
@@ -271,8 +505,6 @@ jQuery(function($){
 
       xml.find("properties").children().each(function(index, elem){
         var prop = json.properties[index] = {}
-        console.log(elem)
-        console.log(elem.nodeName)
         if(elem.nodeName == "light") {
           prop.light = true
           prop.label = $(elem).find("label").text()
@@ -282,8 +514,27 @@ jQuery(function($){
           prop.light = false
           prop.label = $(elem).find("label").text()
           prop.treatment = $(elem).find("treatment").text()
+
+          prop.triples = []
+          $(elem).find("triple").each(function(index, elem){
+            var el = $(elem)
+            var triple = {
+              s: {
+                type: el.find("s").attr("type"),
+                value: el.find("s").text()
+              },
+              p: {
+                type: el.find("p").attr("type"),
+                value: el.find("p").text()
+              },
+              o: {
+                type: el.find("o").attr("type"),
+                value: el.find("o").text()
+              }
+            }
+            prop.triples[index] = triple
+          })
         }
-        console.log(prop)
       })
 
       return json
@@ -293,24 +544,6 @@ jQuery(function($){
 
 
 
-  
-
-
-  
-  var profile = {
-    name: 'DBPedia sqd',
-    endPoint: {
-      url: "http://localhost:9998/casablanca"
-    },
-    searchPredicates: [{
-      uri: "rdfs:label",
-      weight: 25,
-      method: "Custom",
-      language: "fr"
-    },{
-      uri: "foaf:name"
-    }]
-  }
 
 
 
@@ -318,6 +551,11 @@ jQuery(function($){
 
   $(Handlebars.registerHelper('equal', function(obj1, obj2, options){
     if(obj1 == obj2)
+      return options.fn(this);
+  }))
+
+  $(Handlebars.registerHelper('needsValue', function(obj1, options){
+    if(obj1 == "Literal" || obj1 == "URI" || obj1 == "Variable")
       return options.fn(this);
   }))
 

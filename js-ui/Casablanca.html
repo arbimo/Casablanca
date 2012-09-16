@@ -117,6 +117,7 @@
           <button id="show-profile" class="btn pull-right">Show</button>
           <button id="submit-profile" class="btn pull-right">Submit</button>
         </h2>
+
         <div class="tabbable"> <!-- Only required for left/right tabs -->
 
           <ul class="nav nav-tabs">
@@ -135,31 +136,8 @@
             </div>
 
             <div class="tab-pane" id="properties-tab">
-              <div>
-
-
-        <legend>Property  
-          <select id="pConf">
-            <option value="light" selected>Light Configuration</option>
-            <option value="full">Full Configuration</option>
-          </select>
-          <button id="delete-property" class="close pull-right">&times;</button>
-        </legend>
-        <form class="form-horizontal search-pred">
-          <div class="control-group">
-            <label class="control-label" for="pPred">Label</label>
-            <div class="controls">
-              <input type="text" id="pPred" placeholder="Name to appear" class="input-xlarge">
-            </div>
-          </div>
-          <div class="control-group">
-            <label class="control-label" for="pPred">Predicate</label>
-            <div class="controls">
-              <input type="text" id="pPred" placeholder="Predicate to retrieve the property" class="input-xxlarge">
-            </div>
-          </div>
-        </form>  
-      </div>
+              <div id="properties"></div>
+              <button class="btn btn-large btn-block" type="button" id="new-property">Add new property</button>
             </div>
           </div>
         </div>
@@ -305,6 +283,117 @@
       </div>
     </script>
 
+    <script id="propertyTpl" type="text/template">
+      <legend>Property  
+        <select id="pConf">
+          <option value="light" {{#if light}}selected{{/if}}>Light Configuration</option>
+          <option value="full" {{#unless light}}selected{{/unless}}>Full Configuration</option>
+        </select>
+        <button id="delete-property" class="close pull-right">&times;</button>
+      </legend>
+
+      {{#if light}}
+      <form class="form-horizontal">
+        <div class="control-group">
+          <label class="control-label" for="pLabel">Label</label>
+          <div class="controls">
+            <input type="text" id="pLabel" placeholder="Name to appear" class="input-xlarge property" value="{{label}}">
+          </div>
+        </div>
+        <div class="control-group">
+          <label class="control-label" for="pPred">Predicate</label>
+          <div class="controls">
+            <input type="text" id="pPred" placeholder="Predicate to retrieve the property" class="input-xxlarge property" value="{{predicate}}">
+          </div>
+        </div>
+      </form>
+
+      {{else}}
+      <form class="form-horizontal">
+          <div class="control-group">
+            <label class="control-label" for="pLabel">Label</label>
+            <div class="controls">
+              <input type="text" id="pLabel" placeholder="Predicate" class="input-xxlarge property" value="{{label}}">
+            </div>
+          </div>
+          <div class="control-group">
+            <label class="control-label" for="pTreatment">Treatment</label>
+            <div class="controls">
+              <select id="pTreatment" class="property">
+                <option {{#equal "No" treatment}}selected{{/equal}} value="No">No</option>
+                <option {{#equal "Min" treatment}}selected{{/equal}} value="Min">Min</option>
+                <option {{#equal "Max" treatment}}selected{{/equal}} value="Max">Max</option>
+                <option {{#equal "Count" treatment}}selected{{/equal}} value="Count">Count</option>
+              </select>
+            </div>
+          </div>
+
+          <button class="btn btn-small pull-right" id="add-triple"><i class="icon-plus"></i></button>
+
+          <div id="triples"></div>
+
+        </form>
+      {{/if}}
+    </script>
+
+    <script type="text/template" id="tripleTpl">
+      <p>Triple
+        <button class="btn btn-small pull-right" id="remove-triple"><i class="icon-remove"></i></button>
+      </p>
+
+      {{#with s}}
+      <div class="control-group" id="subject">
+        <label class="control-label" for="sType">Subject</label>
+        <div class="controls">
+          <select id="sType" class="input-medium">
+            <option {{#equal "Candidate" type}}selected{{/equal}} value="Candidate">Candidate</option>
+            <option {{#equal "Target" type}}selected{{/equal}} value="Target">Target</option>
+            <option {{#equal "Variable" type}}selected{{/equal}} value="Variable">Variable</option>
+            <option {{#equal "Predicate" type}}selected{{/equal}} value="Predicate">Predicate</option>
+          </select>
+          {{#needsValue type}}
+          <input type="text" id="sValue" placeholder="Value" value="{{value}}">
+          {{/needsValue}}
+        </div>
+      </div>
+      {{/with}}
+
+      {{#with p}}
+      <div class="control-group" id="predicate">
+        <label class="control-label" for="pType">Predicate</label>
+        <div class="controls">
+          <select id="pType" class="input-medium">
+            <option {{#equal "Candidate" type}}selected{{/equal}} value="Candidate">Candidate</option>
+            <option {{#equal "Target" type}}selected{{/equal}} value="Target">Target</option>
+            <option {{#equal "Variable" type}}selected{{/equal}} value="Variable">Variable</option>
+            <option {{#equal "URI" type}}selected{{/equal}} value="URI">URI</option>
+          </select>
+          {{#needsValue type}}
+          <input type="text" id="pValue" placeholder="Value" value="{{value}}">
+          {{/needsValue}}
+        </div>
+      </div>
+      {{/with}}
+
+      {{#with o}}
+      <div class="control-group" id="object">
+        <label class="control-label" for="oType">Object</label>
+        <div class="controls">
+          <select id="oType" class="input-medium">
+            <option {{#equal "Candidate" type}}selected{{/equal}} value="Candidate">Candidate</option>
+            <option {{#equal "Target" type}}selected{{/equal}} value="Target">Target</option>
+            <option {{#equal "Variable" type}}selected{{/equal}} value="Variable">Variable</option>
+            <option {{#equal "Predicate" type}}selected{{/equal}} value="Predicate">Predicate</option>
+            <option {{#equal "Literal" type}}selected{{/equal}} value="Literal">Literal</option>
+          </select>
+          {{#needsValue type}}
+          <input type="text" id="oValue" placeholder="Value" value="{{value}}">
+          {{/needsValue}}
+        </div>
+      </div>
+      {{/with}}
+    </script>
+
     <script type="text/xml" id="profileXMLTpl">
       <profile>
         <name>{{description.name}}</name>
@@ -322,9 +411,33 @@
           </search-predicate>
           {{/searchPredicates}}
         </search>
-        <popularities></popularities>
+        <properties>
+          {{#properties}}
+
+          {{#if light}}
+          <light>
+            <label>{{label}}</label>
+            <predicate>{{predicate}}</predicate>
+          </light>
+
+          {{else}}
+          <full>
+            <label>{{label}}</label>
+            <treatment>{{treatment}}</treatment>
+            {{#triples}}
+            <triple>
+              <s type="{{s.type}}">{{s.value}}</s>
+              <p type="{{p.type}}">{{p.value}}</p>
+              <o type="{{o.type}}">{{o.value}}</o>
+            </triple>
+            {{/triples}}
+          </full>
+          {{/if}}
+
+          {{/properties}}
+        </properties>
         <constraints></constraints>
-        <properties></properties>
+        <popularities></popularities>
       </profile>
     </script>
 
