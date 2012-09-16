@@ -123,7 +123,9 @@
           <ul class="nav nav-tabs">
             <li class="active"><a href="#prof-desc-tab" data-toggle="tab">Description</a></li>
             <li><a href="#search-tab" data-toggle="tab">Search</a></li>
+            <li><a href="#popularities-tab" data-toggle="tab">Popularities</a></li>
             <li><a href="#properties-tab" data-toggle="tab">Properties</a></li>
+            <li><a href="#constraints-tab" data-toggle="tab">Constraints</a></li>
           </ul>
 
           <div class="tab-content">
@@ -138,6 +140,16 @@
             <div class="tab-pane" id="properties-tab">
               <div id="properties"></div>
               <button class="btn btn-large btn-block" type="button" id="new-property">Add new property</button>
+            </div>
+
+            <div class="tab-pane" id="popularities-tab">
+              <div id="popularities"></div>
+              <button class="btn btn-large btn-block" type="button" id="new-popularity">Add new popularity</button>
+            </div>
+
+            <div class="tab-pane" id="constraints-tab">
+              <div id="constraints"></div>
+              <button class="btn btn-large btn-block" type="button" id="new-constraint">Add new constraint</button>
             </div>
           </div>
         </div>
@@ -195,7 +207,7 @@
           {{#search-result}}
           <tr>
             <td>{{global-score}}</td>
-            <td><a href={{uri}}>{{uri}}</td>
+            <td><a href={{uri}} target="_blank">{{uri}}</td>
             <td><button  
                   id={{id}}
                   class="candidate-info btn btn-info btn-small" 
@@ -313,7 +325,7 @@
           <div class="control-group">
             <label class="control-label" for="pLabel">Label</label>
             <div class="controls">
-              <input type="text" id="pLabel" placeholder="Predicate" class="input-xxlarge property" value="{{label}}">
+              <input type="text" id="pLabel" placeholder="Description" class="input-xxlarge property" value="{{label}}">
             </div>
           </div>
           <div class="control-group">
@@ -327,6 +339,89 @@
               </select>
             </div>
           </div>
+
+          <button class="btn btn-small pull-right" id="add-triple"><i class="icon-plus"></i></button>
+
+          <div id="triples"></div>
+
+        </form>
+      {{/if}}
+    </script>
+
+    <script id="popularityTpl" type="text/template">
+      <legend>Popularity  
+        <select id="pConf">
+          <option value="light" {{#if light}}selected{{/if}}>Light Configuration</option>
+          <option value="full" {{#unless light}}selected{{/unless}}>Full Configuration</option>
+        </select>
+        <button id="delete-popularity" class="close pull-right">&times;</button>
+      </legend>
+
+      {{#if light}}
+      <form class="form-horizontal">
+        <div class="control-group">
+          <label class="control-label" for="pLabel">Label</label>
+          <div class="controls">
+            <input type="text" id="pLabel" placeholder="Description" class="input-xlarge" value="{{label}}">
+          </div>
+        </div>
+        <div class="control-group">
+          <label class="control-label" for="pPred">Predicate</label>
+          <div class="controls">
+            <input type="text" id="pPred" placeholder="Predicate to retrieve the popularity" class="input-xxlarge" value="{{predicate}}">
+          </div>
+        </div>
+      </form>
+
+      {{else}}
+      <form class="form-horizontal">
+          <div class="control-group">
+            <label class="control-label" for="pLabel">Label</label>
+            <div class="controls">
+              <input type="text" id="pLabel" placeholder="Description" class="input-xxlarge" value="{{label}}">
+            </div>
+          </div>
+          <div class="control-group">
+            <label class="control-label" for="pTreatment">Treatment</label>
+            <div class="controls">
+              <select id="pTreatment">
+                <option {{#equal "No" treatment}}selected{{/equal}} value="No">No</option>
+                <option {{#equal "Min" treatment}}selected{{/equal}} value="Min">Min</option>
+                <option {{#equal "Max" treatment}}selected{{/equal}} value="Max">Max</option>
+                <option {{#equal "Count" treatment}}selected{{/equal}} value="Count">Count</option>
+              </select>
+            </div>
+          </div>
+
+          <button class="btn btn-small pull-right" id="add-triple"><i class="icon-plus"></i></button>
+
+          <div id="triples"></div>
+
+        </form>
+      {{/if}}
+    </script>
+
+    <script id="constraintTpl" type="text/template">
+      <legend>Constraint  
+        <select id="pConf">
+          <option value="light" {{#if light}}selected{{/if}}>Light Configuration</option>
+          <option value="full" {{#unless light}}selected{{/unless}}>Full Configuration</option>
+        </select>
+        <button id="delete-constraint" class="close pull-right">&times;</button>
+      </legend>
+
+      {{#if light}}
+      <form class="form-horizontal">
+        <div class="control-group">
+          <label class="control-label" for="pPred">Type</label>
+          <div class="controls">
+            <input type="text" id="pPred" placeholder="Type the candidate must have" class="input-xxlarge" value="{{type}}">
+          </div>
+        </div>
+      </form>
+
+      {{else}}
+      <form class="form-horizontal">
 
           <button class="btn btn-small pull-right" id="add-triple"><i class="icon-plus"></i></button>
 
@@ -411,6 +506,7 @@
           </search-predicate>
           {{/searchPredicates}}
         </search>
+
         <properties>
           {{#properties}}
 
@@ -436,8 +532,57 @@
 
           {{/properties}}
         </properties>
-        <constraints></constraints>
-        <popularities></popularities>
+
+        <popularities>
+          {{#popularities}}
+
+          {{#if light}}
+          <light>
+            <label>{{label}}</label>
+            <predicate>{{predicate}}</predicate>
+          </light>
+
+          {{else}}
+          <full>
+            <label>{{label}}</label>
+            <treatment>{{treatment}}</treatment>
+            {{#triples}}
+            <triple>
+              <s type="{{s.type}}">{{s.value}}</s>
+              <p type="{{p.type}}">{{p.value}}</p>
+              <o type="{{o.type}}">{{o.value}}</o>
+            </triple>
+            {{/triples}}
+          </full>
+          {{/if}}
+
+          {{/popularities}}
+        </popularities>
+
+        <constraints>
+          {{#constraints}}
+
+          {{#if light}}
+          <light>
+            <label>{{label}}</label>
+            <predicate>{{predicate}}</predicate>
+          </light>
+
+          {{else}}
+          <full>
+            {{#triples}}
+            <triple>
+              <s type="{{s.type}}">{{s.value}}</s>
+              <p type="{{p.type}}">{{p.value}}</p>
+              <o type="{{o.type}}">{{o.value}}</o>
+            </triple>
+            {{/triples}}
+          </full>
+          {{/if}}
+
+          {{/constraints}}
+        </constraints>
+
       </profile>
     </script>
 

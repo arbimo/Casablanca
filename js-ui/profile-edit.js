@@ -138,7 +138,9 @@ jQuery(function($){
       "click #show-profile": "log",
       "click #submit-profile": "submitProfile",
       "click #new-search-predicate": "newSearchPredicate",
-      "click #new-property": "newProperty"
+      "click #new-popularity": "newPopularity",
+      "click #new-property": "newProperty",
+      "click #new-constraint": "newConstraint",
     },
 
     initialize: function(){
@@ -166,10 +168,22 @@ jQuery(function($){
       var spv = new SearchPredicateView({model: spm})
     },
 
+    newPopularity: function(){
+      var pm = new PopularityModel()
+      this.model.get("popularities").add(pm)
+      var pv = new PopularityView({model: pm})
+    },
+
     newProperty: function(){
       var pm = new PropertyModel()
       this.model.get("properties").add(pm)
       var pv = new PropertyView({model: pm})
+    },
+
+    newConstraint: function(){
+      var cm = new ConstraintModel()
+      this.model.get("constraints").add(cm)
+      var pv = new ConstraintView({model: cm})
     },
   })
 
@@ -283,7 +297,7 @@ jQuery(function($){
 
     attach: function(){
       this.parseDOM()
-      $(".property[cid|="+this.model.parent.cid+"]").find("#triples").append($(this.el))
+      $("div[cid|="+this.model.parent.cid+"]").find("#triples").append($(this.el))
       this.render()
     },
 
@@ -323,6 +337,10 @@ jQuery(function($){
   window.TriplesColl = MyCollection.extend({
     model: TripleModel,
   })
+
+
+
+
 
 
   /****************************** Properties ***********************************/
@@ -427,6 +445,213 @@ jQuery(function($){
 
 
 
+
+
+/****************************** Popularities ***********************************/
+
+  window.PopularityModel = MyModel.extend({
+    defaults: {
+      light: true,
+      treatment: "No",
+      triples: new TriplesColl()
+    },
+
+    initialize: function(){
+      _.bindAll(this, "addTriple")
+      this.set("triples", new TriplesColl())
+    },
+
+    addTriple: function(tripleModel){
+      tripleModel.parent = this
+      this.get("triples").add(tripleModel)
+      this.trigger("change")
+    },
+  })
+
+  window.PopularityView = Backbone.View.extend({
+    tagName: "div",
+    className: "popularity",
+
+    template: Handlebars.compile($("#popularityTpl").html()),
+
+    events: {
+      "click #delete-popularity": "destroy",
+      "click #add-triple": "addTriple",
+      "change input": "parseDOM",
+      "change select": "parseDOM",
+    },
+
+    initialize: function(){
+      $(this.el).attr("cid", this.model.cid)
+      _.bindAll(this, "parseDOM", "render", "destroy", "remove", "removeTriple", "addTriple")
+      this.model.bind("change", this.render)
+      this.model.bind("destroy", this.remove)
+      this.render()
+      $("#popularities").append($(this.el))
+    },
+
+    parseDOM: function(){
+      var light = $(this.el).find("#pConf").val() == "light"
+      if(light) {
+        var label = $(this.el).find("#pLabel").val()
+        var predicate = $(this.el).find("#pPred").val()
+
+        this.model.set({
+          light: light,
+          label: label,
+          predicate: predicate,
+        })
+      }
+      else {
+        var label = $(this.el).find("#pLabel").val()
+        var treatment = $(this.el).find("#pTreatment").val()
+        this.model.set({
+          light: light,
+          label: label,
+          treatment: treatment,
+        })
+      }
+    },
+
+    render: function(){
+      $(this.el).find("#triples").detach()
+      $(this.el).html(this.template(this.model.toJSON()))
+      this.model.trigger("redrawn")
+    },
+
+    remove: function(){
+      this.undelegateEvents()
+      $(this.el).remove()
+    },
+
+    addTriple: function(){
+      var tm = new TripleModel()
+      tm.parent = this.model
+      new TripleView({model: tm})
+      this.model.addTriple(tm)
+    },
+
+    removeTriple: function(event){
+      var id = $(event.currentTarget).attr("value")
+      this.model.removeTriple(id)
+    },
+
+    destroy: function(){
+      this.model.destroy()
+    },
+
+  })
+
+  window.PopularitiesColl = MyCollection.extend({
+    model: PopularityModel,
+  })
+
+
+
+
+
+
+/****************************** Constraint ***********************************/
+
+  window.ConstraintModel = MyModel.extend({
+    defaults: {
+      light: true,
+      treatment: "No",
+      triples: new TriplesColl()
+    },
+
+    initialize: function(){
+      _.bindAll(this, "addTriple")
+      this.set("triples", new TriplesColl())
+    },
+
+    addTriple: function(tripleModel){
+      tripleModel.parent = this
+      this.get("triples").add(tripleModel)
+      this.trigger("change")
+    },
+  })
+
+  window.ConstraintView = Backbone.View.extend({
+    tagName: "div",
+    className: "constraint",
+
+    template: Handlebars.compile($("#constraintTpl").html()),
+
+    events: {
+      "click #delete-constraint": "destroy",
+      "click #add-triple": "addTriple",
+      "change input": "parseDOM",
+      "change select": "parseDOM",
+    },
+
+    initialize: function(){
+      $(this.el).attr("cid", this.model.cid)
+      _.bindAll(this, "parseDOM", "render", "destroy", "remove", "removeTriple", "addTriple")
+      this.model.bind("change", this.render)
+      this.model.bind("destroy", this.remove)
+      this.render()
+      $("#constraints").append($(this.el))
+    },
+
+    parseDOM: function(){
+      var light = $(this.el).find("#pConf").val() == "light"
+      if(light) {
+        var label = $(this.el).find("#pLabel").val()
+        var predicate = $(this.el).find("#pPred").val()
+
+        this.model.set({
+          light: light,
+          label: label,
+          predicate: predicate,
+        })
+      }
+      else {
+        var label = $(this.el).find("#pLabel").val()
+        var treatment = $(this.el).find("#pTreatment").val()
+        this.model.set({
+          light: light,
+          label: label,
+          treatment: treatment,
+        })
+      }
+    },
+
+    render: function(){
+      $(this.el).find("#triples").detach()
+      $(this.el).html(this.template(this.model.toJSON()))
+      this.model.trigger("redrawn")
+    },
+
+    remove: function(){
+      this.undelegateEvents()
+      $(this.el).remove()
+    },
+
+    addTriple: function(){
+      var tm = new TripleModel()
+      tm.parent = this.model
+      new TripleView({model: tm})
+      this.model.addTriple(tm)
+    },
+
+    removeTriple: function(event){
+      var id = $(event.currentTarget).attr("value")
+      this.model.removeTriple(id)
+    },
+
+    destroy: function(){
+      this.model.destroy()
+    },
+
+  })
+
+  window.ConstraintsColl = MyCollection.extend({
+    model: ConstraintModel,
+  })
+
+
+
   
 
 
@@ -472,11 +697,45 @@ jQuery(function($){
 
       })
 
+      var popularities = new PopularitiesColl()
+      $.each(json.popularities, function(index, elem) {
+        var triples = elem.triples
+        var popularity = new PopularityModel(elem)
+        new PopularityView({model: popularity})
+        popularities.add(popularity)
+        if(triples)
+          $.each(triples, function(index, elem){
+            var triple = new TripleModel(elem)
+            triple.parent = popularity
+            new TripleView({model: triple})
+            popularity.addTriple(triple)
+          })
+
+      })
+
+      var constraints = new ConstraintsColl()
+      $.each(json.constraints, function(index, elem) {
+        var triples = elem.triples
+        var constraint = new ConstraintModel(elem)
+        new ConstraintView({model: constraint})
+        constraints.add(constraint)
+        if(triples)
+          $.each(triples, function(index, elem){
+            var triple = new TripleModel(elem)
+            triple.parent = constraint
+            new TripleView({model: triple})
+            constraint.addTriple(triple)
+          })
+
+      })
+
 
       profileEdit.set({
         description: description,
         searchPredicates: searchPredicates,
         properties: properties,
+        constraints: constraints,
+        popularities: popularities,
       })
 
       new ProfileEditView({model: profileEdit})
@@ -514,6 +773,70 @@ jQuery(function($){
           prop.light = false
           prop.label = $(elem).find("label").text()
           prop.treatment = $(elem).find("treatment").text()
+
+          prop.triples = []
+          $(elem).find("triple").each(function(index, elem){
+            var el = $(elem)
+            var triple = {
+              s: {
+                type: el.find("s").attr("type"),
+                value: el.find("s").text()
+              },
+              p: {
+                type: el.find("p").attr("type"),
+                value: el.find("p").text()
+              },
+              o: {
+                type: el.find("o").attr("type"),
+                value: el.find("o").text()
+              }
+            }
+            prop.triples[index] = triple
+          })
+        }
+      })
+
+    xml.find("popularities").children().each(function(index, elem){
+        var prop = json.popularities[index] = {}
+        if(elem.nodeName == "light") {
+          prop.light = true
+          prop.label = $(elem).find("label").text()
+          prop.predicate = $(elem).find("predicate").text()
+        }
+        else if(elem.nodeName == "full") {
+          prop.light = false
+          prop.label = $(elem).find("label").text()
+          prop.treatment = $(elem).find("treatment").text()
+
+          prop.triples = []
+          $(elem).find("triple").each(function(index, elem){
+            var el = $(elem)
+            var triple = {
+              s: {
+                type: el.find("s").attr("type"),
+                value: el.find("s").text()
+              },
+              p: {
+                type: el.find("p").attr("type"),
+                value: el.find("p").text()
+              },
+              o: {
+                type: el.find("o").attr("type"),
+                value: el.find("o").text()
+              }
+            }
+            prop.triples[index] = triple
+          })
+        }
+      })
+
+      xml.find("constraints").children().each(function(index, elem){
+        var prop = json.constraints[index] = {}
+        if(elem.nodeName == "light") {
+          prop.light = true
+        }
+        else if(elem.nodeName == "full") {
+          prop.light = false
 
           prop.triples = []
           $(elem).find("triple").each(function(index, elem){
