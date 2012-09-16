@@ -84,7 +84,9 @@ jQuery(function($){
         success: function(json){
         	Cas.Profiles.setProfiles(json.profiles.profile)
         },
- //     error: Cas.Error.cantRetrieveProfiles,
+  	    error: function(a, b, c){
+  	    	Cas.Error.jsonError("Can't retrieve profiles from server. Make sure the server you specified is up and running.", a,b,c)
+      	},
         dataType: "json"
       })
 		},
@@ -253,7 +255,9 @@ jQuery(function($){
         	Cas.ProfileEdit = Factory.profileEditFromXML(xml)
         	Cas.Controller.selectView("profile-edit")
         },
- //     error: Cas.Error.cantRetrieveProfiles,
+      	error: function(a,b,c){
+      		Cas.Error.jsonError("Unable to retrieve profile "+id, a,b,c)
+      	},
         dataType: "xml"
       })
 		},
@@ -264,6 +268,27 @@ jQuery(function($){
 	})
 
 	window.Cas.Controller = new PageController()
+
+
+	window.Cas.Error = {
+
+		template: Handlebars.compile($("#alertTpl").html()),
+
+		alertConstainer: $("#alert-container"),
+
+		jsonError: function(message, jqXHR, textStatus, errorThrown) {
+      console.log(jqXHR)
+      console.log(textStatus)
+      console.log(errorThrown)
+      var fullMessage = message + "<br/>Received error: " +
+      	jqXHR.status + " " + jqXHR.statusText
+      Cas.Error.displayError(fullMessage)
+		},
+
+		displayError: function(html){
+			Cas.Error.alertConstainer.html(Cas.Error.template(html))
+		},
+	}
 
 
 
